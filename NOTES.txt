@@ -1,0 +1,8 @@
+There should be multiple ways a user can go about installing a mod.
+Option 1) Add the encounters, monsters, waves, libraries, heroes, sprites, audio, and sounds in the correct place.
+Option 2) Add the encounter, and add the package of the same name under Packages.
+
+Kris, Ralsei, Susie, Noelle, and Berdly are built-in Heroes.
+Poseur, Posette, and Flapjack are built-in Enemies.
+
+Package selection screen - allow for custom packages (.lua) and default layout packages (.txt)
