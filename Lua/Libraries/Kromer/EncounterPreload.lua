@@ -1,21 +1,12 @@
 -- Clever Coverup --
 local cover = CreateSprite("px","BelowBullet")
 cover.Scale(640,480)
-cover.color = {0,0,0}
+cover.color = {0.5,0.75,0.75}
 
 
 
 -- Encounter Starting --
-__heroes = {}
-for i = 1, #heroes do
-     __heroes[i] = heroes[i]
-end
-heroes = {}
-
-__enemies = {}
-for i = 1, #enemies do
-     __enemies[i] = enemies[i]
-end
+__enemies = enemies
 enemies = {}
 
 __es = EncounterStarting
@@ -41,30 +32,25 @@ function EncounterStarting()
      end
 
      -- Convert Heroes from strings
-     for i = 1, #__heroes do
+     for i = 1, #heroes do
           -- Replace string with hero object.
-          local heroname = __heroes[i]
-          __heroes[i] = {}
-          AddHero(heroname,__heroes[i])
+          local heroname = heroes[i]
+          heroes[i] = {}
+          AddHero(heroname,heropositions[i],i)
      end
      KROMER_LOG("Heroes Loaded",3)
 
-     -- Replace Heroes Table
-     heroes = __heroes
-     __heroes = nil
+     UI.RefreshHeroUI()
 
      -- Convert Enemies from strings
      for i = 1, #__enemies do
           -- Replace string with enemy object.
           local enemyname = __enemies[i]
           __enemies[i] = {}
-          AddEnemy(enemyname,__enemies[i])
+          AddEnemy(enemyname,enemypositions[i])
      end
-     KROMER_LOG("Enemies Loaded",3)
-
-     -- Replace Enemy Table
-     enemies = __enemies
      __enemies = nil
+     KROMER_LOG("Enemies Loaded",3)
 
      -- Music
      Audio.LoadFile(music or "mus_battle1")
@@ -81,21 +67,81 @@ end
 -- Update --
 __u = Update or function() end
 function Update()
+     FRAME = FRAME + 1
+
+     -- if FRAME % 2 == 0 then
+     --      SingleFrame()
+     --      SingleFrame()
+     -- end
+     SingleFrame()
+end
+
+function SingleFrame()
      if Input.GetKey("Escape") == 1 then
           KROMER_LOG("Exit Requested",3)
           if Kromer_DebugLevel > 0 then KROMER_PrintTraceback(false) end
           State("DONE")
      end
+
+     if GetCurrentState() == "INTRO" then
+          local pass = true
+          for i = 1, #heroes do
+               if not heroes[i].sprite.animcomplete then
+                    pass = false
+               end
+          end
+          if pass then
+               activehero = 1
+               State("ACTIONSELECT")
+          end
+     elseif GetCurrentState() == "ACTIONSELECT" then
+          if Input.Left == 1 then
+               currentaction = ((currentaction + 3) % 5) + 1
+          end
+          if Input.Right == 1 then
+               currentaction = (currentaction % 5) + 1
+          end
+
+          if Input.Confirm == 1 then
+               hero_actions[activehero] = currentaction
+               activehero = activehero + 1
+               currentaction = hero_actions[activehero] or 1
+          end
+
+          if Input.Cancel == 1 then
+               activehero = activehero - 1
+               --hero_actions[activehero] =
+               currentaction = hero_actions[activehero] or 1
+          end
+
+          hero_actions[activehero] = currentaction
+     end
+
      -- if Input.Menu == 1 then
-     --      mi = mi + 1
-     --      _ind = mi
-     --      DEBUG("\n\n\n\n\n\n\n\n")
-     --      for k,v in pairs(_G) do
-     --           DEBUG(k .. " = " .. tostring(v))
-     --           _ind = _ind - 1
-     --           if _ind <= 0 then break end
+     --      for i = 1, #heroes do
+     --           local j = false
+     --           for k,v in pairs(heroes[i].animations) do
+     --                if j then
+     --                     heroes[i].SetAnimation(k)
+     --                     break
+     --                end
+     --                if k == heroes[i].currentanimation then j = true end
+     --           end
      --      end
+     --      --heroes[3].SetAnimation("Hurt")
      -- end
+
+     Interp.Update()
+
+     for i = 1, #heroes do
+          heroes[i].Update()
+     end
+     for i = 1, #enemies do
+          enemies[i].Update()
+     end
+
+     UI.Update()
+
      __u()
 end
 

@@ -11,7 +11,7 @@ _set("comments", "Enemy "..__ID..".lua is missing COMMENTS (table)!", {})
 _set("randomdialogue", "Enemy "..__ID..".lua is missing RANDOMDIALOGUE (table)!", {})
 _set("targetables", "Enemy "..__ID..".lua is missing TARGETABLES (string)!", "heroes")
 _set("targettype", "Enemy "..__ID..".lua is missing TARGETTYPE (string)!", 1)
-_set("tired", "Enemy "..__ID..".lua is missing TIRED (boolean)!", false)
+--_set("tired", "Enemy "..__ID..".lua is missing TIRED (boolean)!", false)
 _set("mercy", "Enemy "..__ID..".lua is missing MERCY (number)!", 0)
 
 _set("BeforeDamageCalculation", "Enemy "..__ID..".lua is missing BEFOREDAMAGECALCULATION (function)!", function() end)
@@ -33,4 +33,5 @@ end
 
 local olds = sprite
 sprite = CreateSprite("missing_sprite_error","Entity")
+sprite["offset"] = {0,0}
 Set(olds)

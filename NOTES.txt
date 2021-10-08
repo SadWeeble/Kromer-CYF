@@ -6,3 +6,13 @@ Kris, Ralsei, Susie, Noelle, and Berdly are built-in Heroes.
 Poseur, Posette, and Flapjack are built-in Enemies.
 
 Package selection screen - allow for custom packages (.lua) and default layout packages (.txt)
+
+Widescreen support?
+
+Many aspects of how entities work were directly inspired by CYK, including the animation system.
+
+@heartlessmushroom | heartlessmushroom#0194
+The Player name font
+The magnificent Poseur animation
+
+KyYay's interpolation library

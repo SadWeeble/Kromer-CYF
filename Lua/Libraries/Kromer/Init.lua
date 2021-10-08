@@ -6,6 +6,10 @@ if windows then Misc.WindowName = "KROMER" end
 
 PACKAGE_ID = PACKAGE_ID or "NONE"
 
+FRAME = 0
+
+GetFrame = function() return FRAME end
+
 Kromer_StartTime = Time.time
 Kromer_Version = "1.0.0"
 Kromer_DebugLevel = Kromer_DebugLevel or 0
@@ -37,6 +41,7 @@ Kromer_States = {
      "WAVE",
      "GAMEOVER",
      "OUTRO",
+     "ENTITYSTATUS",
      "NONE"
      }
 -- The default states of Kromer. Custom states can be added for
@@ -48,12 +53,28 @@ end
 
 -- DO NOT CONFUSE THIS FOR EnteringState!!
 function Kromer_EnteringState(newstate, oldstate)
+     if newstate == "INTRO" then
+          for i = 1, #heroes do
+               --DEBUG(heroes[i].SetAnimation)
+               heroes[i].SetAnimation("Intro")
+          end
+     elseif newstate == "ACTIONSELECT" then
+          if oldstate == "INTRO" then
+               for i = 1, #heroes do
+                    heroes[i].StopAnimation()
+               end
+          end
+     end
 end
 
 -- Encounter Functions --
 function RandomEncounterText()
      DEBUG("yeah")
 end
+
+activehero = 0
+currentaction = 1
+hero_actions = {}
 
 -- Remove obsolete things --
 BeforeDeath = nil
@@ -133,6 +154,8 @@ end
 
 require "Kromer/KrisGoPlayInTheSandboxWithYourBrother"
 UI = require "Kromer/UI"
+Interp = require "interpolation"
+TextSystem = require "TextSystem"
 
 -- Utility Code from CYK --
 
@@ -191,6 +214,16 @@ function table.copy(orig)
         copy = orig
     end
     return copy
+end
+
+-- Other functions
+
+function lerp(a,b,t)
+     return a+(b-a)*t
+end
+
+function map(inmin,inmax,outmin,outmax,value)
+     return outmax + (value - inmin) * (outmax - outmin) / (inmax - inmin)
 end
 
 KROMER_LOG("Kromer Initialized",3)

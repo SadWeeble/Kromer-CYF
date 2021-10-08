@@ -1,18 +1,26 @@
 Kromer_DebugLevel = 3
-PACKAGE_ID = "NONE"
+PACKAGE_ID = "Builtin_ExampleEncounter"
 require "Kromer/Init"
 ---------------------
 
 encountertext = "Poseur strikes a pose!"
+encountertext = "Clover joins the stage!"
 nextwaves = {"bullettest_chaserorb"}
 wavetimer = 4.0
 arenasize = {155, 130}
 
-heroes = {"kris"}
-heropositions = {{0, 0}}
+heroes = {"kris", "susie", "noelle", "ralsei"}
+heropositions = {
+     {110, 430},
+     {140, 355},
+     {100, 280},
+     {130, 200}
+}
 
 enemies = {"poseur"}
-enemypositions = {{0, 0}}
+enemypositions = {
+     {500, 320}
+}
 
 possible_attacks = {"bullettest_bouncy", "bullettest_chaserorb", "bullettest_touhou"}
 

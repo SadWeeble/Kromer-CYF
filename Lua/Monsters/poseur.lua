@@ -25,7 +25,7 @@ dialogbubble = "CustomBubble2" -- CustomBubble2 is identical to that of Chapter 
 
 targetables = "heroes"   -- "heroes", "enemies", or "all".
 targettype = 1      -- If a number, that many targets based off of targetables. If a string / table of strings, target those entities.
-tired = false       -- If true, the enemy can be spared through a pacify spell or something of that sort.
+statuses = {tired = false}
 mercy = 0 -- From 0 to 1, the value of the mercy bar.
 
 -- Triggered just before computing an attack on this target
