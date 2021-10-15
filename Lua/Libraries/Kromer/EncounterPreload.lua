@@ -97,39 +97,29 @@ function SingleFrame()
      elseif GetCurrentState() == "ACTIONSELECT" then
           if Input.Left == 1 then
                currentaction = ((currentaction + 3) % 5) + 1
+               Audio.PlaySound("menumove")
           end
           if Input.Right == 1 then
                currentaction = (currentaction % 5) + 1
+               Audio.PlaySound("menumove")
           end
 
           if Input.Confirm == 1 then
                hero_actions[activehero] = currentaction
                activehero = activehero + 1
                currentaction = hero_actions[activehero] or 1
+               Audio.PlaySound("menuconfirm")
           end
 
           if Input.Cancel == 1 then
                activehero = activehero - 1
                --hero_actions[activehero] =
                currentaction = hero_actions[activehero] or 1
+               Audio.PlaySound("menumove")
           end
 
           hero_actions[activehero] = currentaction
      end
-
-     -- if Input.Menu == 1 then
-     --      for i = 1, #heroes do
-     --           local j = false
-     --           for k,v in pairs(heroes[i].animations) do
-     --                if j then
-     --                     heroes[i].SetAnimation(k)
-     --                     break
-     --                end
-     --                if k == heroes[i].currentanimation then j = true end
-     --           end
-     --      end
-     --      --heroes[3].SetAnimation("Hurt")
-     -- end
 
      Interp.Update()
 

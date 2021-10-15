@@ -64,6 +64,9 @@ function Kromer_EnteringState(newstate, oldstate)
                     heroes[i].StopAnimation()
                end
           end
+          if EncounterText == nil then
+               EncounterText = TextSystem.CreateText("[character:Heroes/noelle/Faces/][expression:31]Be glad I don't have \r[highlight:ff0000]Snowgrave[endhighlight], Poseur.","BattleEncounterText",31,76)
+          end
      end
 end
 

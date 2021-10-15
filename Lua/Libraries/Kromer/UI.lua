@@ -19,9 +19,9 @@ end
 
 local baseui = CreateSprite("baseui","LowerUI")
 
-local test_text = CreateSprite("texttest","LowerUI")
-test_text.ypivot = 0
-test_text.y = 0
+--local test_text = CreateSprite("texttest","LowerUI")
+--test_text.ypivot = 0
+--test_text.y = 0
 
 -- Hero UI --
 
@@ -154,7 +154,6 @@ herohighlight.bottom["yoff"] = -3
 table.insert(herohighlight.parts,herohighlight.bottom)
 
 UI.Update = function()
-     test_text.alpha = math.abs(math.sin(Time.time))
      if UI.backgroundvisible then
           background1.MoveTo(320-(GetFrame()/2)%50,240+(GetFrame()/2)%50+25)
           background2.MoveTo(320+(GetFrame()/4)%50,240-(GetFrame()/4)%50)
