@@ -1,0 +1,9 @@
+<bubble width="73">
+     <sprites>
+          <sprite name="normal">
+             <origin x="96" y="42"/>
+          </sprite>
+     </sprites>
+     <border x="10" y="22"/>
+     <origin x="96" y="42"/>
+</bubble>

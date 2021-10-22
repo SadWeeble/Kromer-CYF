@@ -1,3 +1,6 @@
+-- Various stuff for sandboxing --
+-- Don't ask me how it works --
+
 -- Create a basic environment so that user-made variables can't interfere with one another.
 -- Depending on their intended usage, environments may get special variables from this function
 function CreateBlankEnvironment(envtype)
@@ -86,7 +89,7 @@ function CreateBlankEnvironment(envtype)
           t.SetAnimation = function(animationname)
 
                if t.animations[animationname] == nil or #t.animations[animationname] ~= 3 or ((type(t.animations[animationname][1]) ~= "table" and type(t.animations[animationname][1]) ~= "string") or type(t.animations[animationname][2]) ~= "number" or (type(t.animations[animationname][3]) ~= "table" and type(t.animations[animationname][3]) ~= "nil")) then
-                    t.KROMER_LOG("Entity "..t.__ID..".lua: \""..animationname.."\" is not a valid animation.",1)
+                    t.KROMER_LOG("Entity "..t.__ID..".lua: \""..animationname.."\" is not a valid animation.",2)
                     return
                end
 
@@ -105,7 +108,7 @@ function CreateBlankEnvironment(envtype)
                end
 
                if type(anim[1]) == "string" and anim[1]:upper() == "AUTO" then -- Autofill the table
-                    local folder = Misc.ListDir(Kromer_FindDir("Sprites/Heroes/"..t.__ID.."/"..refer..t.sprite["addition"]),false)
+                    local folder = Misc.ListDir(Kromer_FindDir("Sprites/"..(envtype == "m" and "Enemies" or envtype == "h" and "Heroes").."/"..t.__ID.."/"..refer..t.sprite["addition"]),false)
                     anim[1] = {}
                     for i = 1, #folder do
                          --anim[1][#anim[1]+1] = folder[i]:gsub(".png","")
@@ -113,7 +116,7 @@ function CreateBlankEnvironment(envtype)
                     end
                end
 
-               t.sprite.SetAnimation(anim[1], anim[2], Kromer_FindDir("Sprites/Heroes/"..t.__ID.."/"..refer..t.sprite["addition"]):gsub("Sprites/","",1))
+               t.sprite.SetAnimation(anim[1], anim[2], Kromer_FindDir("Sprites/"..(envtype == "m" and "Enemies" or envtype == "h" and "Heroes").."/"..t.__ID.."/"..refer..t.sprite["addition"]):gsub("Sprites/","",1))
                t.currentanimation = animationname
           end
           t.StopAnimation = function()
@@ -127,12 +130,67 @@ function CreateBlankEnvironment(envtype)
      if envtype == "m" then -- Monster Entity
           t.commands = {}
           t.AddAct = function(name, desc, tp, pmr, pma)
-               t.commands[#t.commands+1] = {name, desc, tp, pmr, pma}
+               if type(name) ~= "string" then
+                    KROMER_LOG(t.__ID..".lua Act "..name.." has an invalid name!",1)
+                    name = "Invalid"
+               end
+               if type(desc) ~= "string" then
+                    KROMER_LOG(t.__ID..".lua Act "..name.." has an invalid description!",1)
+                    desc = "Invalid"
+               end
+               if type(tp) ~= "number" then
+                    KROMER_LOG(t.__ID..".lua Act "..name.." has an invalid TP Cost!",1)
+                    tp = 0
+               end
+               if type(pmr) ~= "table" then
+                    if type(pmr) == "nil" then
+                         KROMER_LOG(t.__ID..".lua Act "..name.." has an empty Party Members Required Table!",2)
+                    else
+                         KROMER_LOG(t.__ID..".lua Act "..name.." has an invalid Party Members Required Table!",1)
+                    end
+                    pmr = {}
+               end
+               if type(pma) ~= "table" then
+                    if type(pma) == "nil" then
+                         KROMER_LOG(t.__ID..".lua Act "..name.." has an empty Party Members Accessible Table!",2)
+                    else
+                         KROMER_LOG(t.__ID..".lua Act "..name.." has an invalid Party Members Accessible Table!",1)
+                    end
+                    pma = {}
+                    for i = 1, #heroes do
+                         pma[i] = i
+                    end
+               end
+               t.commands[#t.commands+1] = {name = name, description = desc, tpcost = tp, partymembersrequired = pmr, partymembersaccessible = pma}
           end
      elseif envtype == "h" then -- Hero Entity
           t.spells = {}
           t.AddSpell = function(name, desc, tp, targettype, pmr)
-               t.spells[#t.spells+1] = {name, desc, tp, targettype, pmr}
+               if type(name) ~= "string" then
+                    KROMER_LOG(t.__ID..".lua Spell "..name.." has an invalid name!",1)
+                    name = "Invalid"
+               end
+               if type(desc) ~= "string" then
+                    KROMER_LOG(t.__ID..".lua Spell "..name.." has an invalid description!",1)
+                    desc = "Invalid"
+               end
+               if type(tp) ~= "number" then
+                    KROMER_LOG(t.__ID..".lua Spell "..name.." has an invalid TP Cost!",1)
+                    tp = 0
+               end
+               if type(targettype) ~= "string" or (targettype ~= "Entity" and targettype ~= "Hero" and targettype ~= "Enemy" and targettype ~= "AllEntity" and targettype ~= "AllHero" and targettype ~= "AllEnemy") then
+                    KROMER_LOG(t.__ID..".lua Spell "..name.." has an invalid Target Type!",2)
+                    targettype = "Entity"
+               end
+               if type(pmr) ~= "table" then
+                    if type(pmr) == "nil" then
+                         KROMER_LOG(t.__ID..".lua Spell "..name.." has an empty Party Members Required Table!",2)
+                    else
+                         KROMER_LOG(t.__ID..".lua Spell "..name.." has an invalid Party Members Required Table!",1)
+                    end
+                    pmr = {}
+               end
+               t.spells[#t.spells+1] = {name = name, description = desc, tpcost = tp, targettype = targettype, partymembersrequired = pmr}
           end
      end
 
@@ -145,10 +203,10 @@ end
 -- 1) The associated package
 -- 2) The actual folders
 function Kromer_LoadFile(path,mode,environment)
-     if Misc.FileExists(path) then
-          return loadfile(ModName.."/"..path, mode, environment)
-     elseif Misc.FileExists("Packages/"..PACKAGE_ID.."/"..path) then
+     if Misc.FileExists("Packages/"..PACKAGE_ID.."/"..path) then
           return loadfile(ModName.."Packages/"..PACKAGE_ID.."/"..path, mode, environment)
+     elseif Misc.FileExists(path) then
+          return loadfile(ModName.."/"..path, mode, environment)
      else
           error("MISSING FILE!\nThese are the following places where Kromer searched:\n\n<color=#aaaaff>"..ModName.."/"..path.."\n\n"..ModName.."/Packages/"..PACKAGE_ID.."/"..path.."</color>", 0)
      end
@@ -160,11 +218,13 @@ function Kromer_FindSprite(path)
      local default_path_test = function()
           local p = CreateProjectile(default_path, 0, 0)
           p.Remove()
+          p = nil
      end
      local package_path = "../Packages/"..PACKAGE_ID.."/"..path
      local package_path_test = function()
           local p = CreateProjectile(package_path, 0, 0)
           p.Remove()
+          p = nil
      end
 
      local default_path_test = xpcall(default_path_test, debug.traceback)
@@ -177,7 +237,7 @@ function Kromer_FindSprite(path)
      return "missing_sprite_error"
 end
 
--- Finds the given sprite in the usual places
+-- Finds the directory, or its package equivalent
 function Kromer_FindDir(path)
      local default_path = path
      local package_path = "Packages/"..PACKAGE_ID.."/"..path
@@ -187,10 +247,11 @@ function Kromer_FindDir(path)
      error("Could not find path: "..path,2)
 end
 
--- Find the enemy "enemyname" and add it to the enemy list, or the given environment.
+-- Find the enemy "enemyname" and add it to the enemy list.
 function AddEnemy(enemyname, position, index)
      KROMER_LOG("Added Enemy \""..enemyname..".lua\"",3)
 
+     -- Create a blank monster environment
      local environment = CreateBlankEnvironment("m")
 
      position = position or {320,240}
@@ -198,12 +259,17 @@ function AddEnemy(enemyname, position, index)
 
      environment.__ID = enemyname
 
+     -- Load the enemy's actual file.
      local enemyfile = Kromer_LoadFile("Lua/Monsters/"..enemyname..".lua","t",environment)
      enemyfile()
+     -- Load the default enemy.
      local enemyfile = Kromer_LoadFile("Lua/Libraries/Kromer/EnemyTemp.lua","t",environment)
      enemyfile()
+     -- Load the default entity.
      local enemyfile = Kromer_LoadFile("Lua/Libraries/Kromer/EntityTemp.lua","t",environment)
      enemyfile()
+
+     -- The reason for the above code being in a backwards-looking order is that EnemyTemp.lua and EntityTemp.lua are mainly used for catching errors.
 
      environment.sprite.x = position[1]
      environment.sprite.y = position[2]
@@ -213,10 +279,11 @@ function AddEnemy(enemyname, position, index)
 
 end
 
--- Find the hero "heroname" and add it to the hero list, or the given environment.
+-- Find the hero "heroname" and add it to the hero list.
 function AddHero(heroname, position, index)
      KROMER_LOG("Added Hero \""..heroname..".lua\"",3)
 
+     -- Create a blank hero environment
      local environment = CreateBlankEnvironment("h")
 
      position = position or {320,240}
@@ -224,12 +291,17 @@ function AddHero(heroname, position, index)
 
      environment.__ID = heroname
 
+     -- Load the hero's actual file.
      local herofile = Kromer_LoadFile("Lua/Heroes/"..heroname..".lua","t",environment)
      herofile()
+     -- Load the default hero.
      local herofile = Kromer_LoadFile("Lua/Libraries/Kromer/HeroTemp.lua","t",environment)
      herofile()
+     -- Load the default entity.
      local herofile = Kromer_LoadFile("Lua/Libraries/Kromer/EntityTemp.lua","t",environment)
      herofile()
+
+     -- The reason for the above code being in a backwards-looking order is that HeroTemp.lua and EntityTemp.lua are mainly used for catching errors.
 
      environment.sprite.x = position[1]
      environment.sprite.y = position[2]

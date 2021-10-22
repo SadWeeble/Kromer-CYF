@@ -1,3 +1,7 @@
+-- Initialize Kromer --
+-- The actual behavior of Kromer can be found in EncounterPreload.lua --
+-- However, some important functions are still held here --
+
 if not isCYF or (CYFversion < "0.6.5" or CYFversion == "1.0") then
      error("<size=20>You need to be playing on <color=#ffff00><i>Create Your Frisk Version 0.6.5</i></color> or greater to use Kromer.</size>",-1)
 end
@@ -19,12 +23,16 @@ Kromer_DebugLevel = Kromer_DebugLevel or 0
 -- 2 for ALL WARNINGS
 -- 3 for ALL DEBUG MESSAGES
 
+Kromer_Widescreen = Kromer_Widescreen or false
+Kromer_30FPS = Kromer_30FPS or false
+
 CreateLayer("Background", "Top", true)
 CreateLayer("Entity", "Background")
 CreateLayer("LowerUI", "Entity")
 CreateLayer("UpperUI", "LowerUI")
 CreateLayer("Arena", "UpperUI")
 CreateLayer("Bullet", "Arena")
+CreateLayer("HighestUI", "Bullet")
 
 -- States --
 Kromer_State = "NONE"
@@ -34,6 +42,7 @@ Kromer_States = {
      "ENEMYSELECT",
      "ALLYSELECT",
      "ENTITYSELECT",
+     "ACTMENU",
      "MAGICMENU",
      "ITEMMENU",
      "ATTACKING",
@@ -51,22 +60,76 @@ function GetCurrentState()
      return Kromer_State
 end
 
+-- The actual Encounter Text Object
+local EncounterText = nil
+
 -- DO NOT CONFUSE THIS FOR EnteringState!!
 function Kromer_EnteringState(newstate, oldstate)
+     Kromer_StateAge = 0
+     if oldstate == "ACTIONSELECT" then
+          EncounterText.SkipLine()
+     elseif oldstate == "ENTITYSELECT" or oldstate == "HEROSELECT" or oldstate == "ENEMYSELECT" then
+          UI_Text.CleanUpChildren()
+          UI.EntitySelectCover.yscale = 0
+          -- for i = #entityselectelements, 1, -1 do
+          --      entityselectelements[i].Remove()
+          --      entityselectelements[i] = nil
+          --      --table.remove(entityselectelements,i)
+          -- end
+          --UI_Text = nil
+          --UI_Soul = nil
+          uimenurefs = {}
+     elseif oldstate == "ACTMENU" then
+          UI_Text.CleanUpChildren()
+          UI.ActMenuCover.yscale = 0
+          uimenurefs = {}
+     end
+
      if newstate == "INTRO" then
-          for i = 1, #heroes do
-               --DEBUG(heroes[i].SetAnimation)
-               heroes[i].SetAnimation("Intro")
-          end
+          -- Play all heroes' intro animations
+          -- Actually, play enemy animations too
+          for i = 1, #heroes  do  heroes[i].SetAnimation("Intro") end
+          for i = 1, #enemies do enemies[i].SetAnimation("Intro") end
      elseif newstate == "ACTIONSELECT" then
+          -- Hide Various UI Menus
+          UI.EntitySelectCover.yscale = 0
+          -- Set Idle Animations
           if oldstate == "INTRO" then
                for i = 1, #heroes do
-                    heroes[i].StopAnimation()
+                    heroes[i].SetAnimation("Idle")
+               end
+               for i = 1, #enemies do
+                    enemies[i].SetAnimation("Idle")
                end
           end
-          if EncounterText == nil then
-               EncounterText = TextSystem.CreateText("[character:Heroes/noelle/Faces/][expression:31]Be glad I don't have \r[highlight:ff0000]Snowgrave[endhighlight], Poseur.","BattleEncounterText",31,76)
+          -- Encounter Text
+          if EncounterText == nil and encountertext ~= nil then
+               EncounterText = TextSystem.CreateText(encountertext,"BattleEncounterText",31,76)
+          elseif encountertext == nil and EncounterText == nil then
+               EncounterText = TextSystem.CreateText("","BattleEncounterText",31,76)
+               KROMER_LOG("There is no Encounter Text!",1)
           end
+     elseif newstate == "ENTITYSELECT" or newstate == "HEROSELECT" or newstate == "ENEMYSELECT" then
+          -- Show Menu
+          UI_Soul.SetParent(UI.EntitySelectCover)
+          UI.EntitySelectCover.yscale = 115
+     elseif newstate == "ACTMENU" then
+          -- Show Menu
+          UI_Soul.SetParent(UI.ActMenuCover)
+          UI.ActMenuCover.yscale = 115
+     elseif newstate == "DIALOGUE" then
+          EncounterText.Remove()
+          TextSystem.CharacterPortrait.Set("empty")
+
+          if oldstate == "ACTIONSELECT" then
+               local t = {}
+               for i = 1, #heroes do
+                    t[i] = heroes[i].name .. " done did "..hero_actions[i].action .. "!"
+               end
+               EncounterText = TextSystem.CreateText(t,"BattleEncounterText",31,76)
+               EncounterText["progressmode"] = "manual"
+          end
+
      end
 end
 
@@ -75,9 +138,14 @@ function RandomEncounterText()
      DEBUG("yeah")
 end
 
-activehero = 0
-currentaction = 1
-hero_actions = {}
+activehero     = 0       -- The currently selected hero
+previoushero   = {}      -- If we press X, what hero do we go back to?
+currentaction  = 1       -- The currently selected action
+hero_actions   = {}      -- A more detailed table of hero actions
+past_actions   = {}      -- A simple table containing the last-known actions of the heroes, for when they're selected again
+linked_actions = {}      -- Has a hero's action "linked" to another's? If so, when their action is reset, reset the others'. (Ex: X-acts)
+menucontext    = ""      -- Context for a menu, if required
+UI_Positions   = {}      -- Deltarune remembers each hero's position in menus.
 
 -- Remove obsolete things --
 BeforeDeath = nil
@@ -95,9 +163,10 @@ KROMER_traceback = {}
 
 local tb = Misc.OpenFile("traceback.txt","w")
 tb.Write("",false)
+tb = nil
 
---unescape = true
-
+-- Fancy DEBUG
+-- Specific severity levels, Unity Rich Text, and automatic traceback printing.
 function KROMER_LOG(message, severity)
      if severity <= Kromer_DebugLevel then
           local prefix = ""
@@ -110,6 +179,7 @@ function KROMER_LOG(message, severity)
      end
 end
 
+-- Simpler than it looks
 function KROMER_PrintTraceback(append)
      if not append then KROMER_LOG("Traceback Printed",3) end
      local text = ""
@@ -142,11 +212,12 @@ function KROMER_PrintTraceback(append)
                local line3 = "\""..KROMER_traceback[i][3].."\""
                local topline = string.rep("═",1+string.len(line1)+1) .. "╦" .. string.rep("═",1+string.len(line2)+1) .. "╦" .. string.rep("═",1+string.len(line3)+1)
                local bottomline = string.rep("═",1+string.len(line1)+1) .. "╩" .. string.rep("═",1+string.len(line2)+1) .. "╩" .. string.rep("═",1+string.len(line3)+1)
-               text = text .. ">>>>>╔" .. topline .. "╗" .. "<<<<<\n>>>>>║ " .. line1 .. " ║ " .. line2 .. " ║ " .. line3 .. " ║<<<<<\n>>>>>╚" ..bottomline .. "╝<<<<<\n\n"
+               text = text .. string.rep("!",string.len(topline)+2) .. "\n" .. "╔" .. topline .. "╗" .. "\n║ " .. line1 .. " ║ " .. line2 .. " ║ " .. line3 .. " ║\n╚" ..bottomline .. "╝\n" .. string.rep("!",string.len(bottomline)+2) .. "\n\n"
           end
      end
      local tb = Misc.OpenFile("traceback.txt","w")
      tb.Write(text,append)
+     tb = nil
 end
 
 local __e = error
@@ -156,9 +227,10 @@ function error(msg,chunk)
 end
 
 require "Kromer/KrisGoPlayInTheSandboxWithYourBrother"
+TextSystem = require "TextSystem"
 UI = require "Kromer/UI"
 Interp = require "interpolation"
-TextSystem = require "TextSystem"
+XmlParser = require "XmlParser"
 
 -- Utility Code from CYK --
 

@@ -24,13 +24,20 @@ local __u = Update or function() end
 
 --local s = CreateSprite("ut-heart","LowerUI")
 
+sprite["glow"] = CreateSprite("px")
+sprite["glow"].Scale(1000,1000)
+sprite["glow"].SetParent(sprite)
+sprite["glow"].alpha = 0
+
 function Update()
      if sprite.animcomplete and animations[currentanimation][3].immediate and sprite["nextanimation"] ~= false then
           SetAnimation(sprite["nextanimation"])
      end
      sprite.SetPivot(0.5-sprite["offset"][1]/sprite.width, 0.5-sprite["offset"][2]/sprite.height)
+     sprite.Mask("sprite")
      --s.MoveTo(sprite.x,sprite.y)
 
+     sprite["glow"].alpha = 0
 
      __u()
 end

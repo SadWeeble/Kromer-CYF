@@ -16,3 +16,5 @@ The Player name font
 The magnificent Poseur animation
 
 KyYay's interpolation library
+
+Thanks to Dimitri and Ally for helping with memory leak issues!

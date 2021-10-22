@@ -6,13 +6,7 @@
 
 <spritesheet>
     <sprite name="é"> <!-- Empty space instead of star or ZZZ -->
-        <rect x="220" y="0" w="18" h="16"/>
-    </sprite>
-    <sprite name="è"> <!-- Star used in the ENEMYSELECT state -->
-        <rect x="238" y="0" w="18" h="16"/>
-    </sprite>
-    <sprite name="ê"> <!-- ZZZ used in the ENEMYSELECT state -->
-        <rect x="238" y="16" w="18" h="16"/>
+        <rect x="29" y="80" w="1" h="18"/>
     </sprite>
     <sprite name="Ђ"> <!-- Kris -->
         <rect x="0" y="0" w="28" h="23"/>

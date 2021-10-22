@@ -1,0 +1,9 @@
+<bubble width="110">
+     <sprites>
+          <sprite name="clover1">
+             <origin x="141" y="41"/>
+          </sprite>
+     </sprites>
+     <border x="10" y="22"/>
+     <origin x="141" y="41"/>
+</bubble>

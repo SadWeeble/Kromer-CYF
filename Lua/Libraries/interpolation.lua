@@ -199,6 +199,35 @@ end
 --mode should just be the name of one of the functions above (except applyloopmode), minus the "self."
 --if timebased is true, t is in seconds; otherwise, it is in frames.
 
+function self.GetItem(ID)
+	if moving[ID] ~= nil then
+		return moving[ID]
+	else
+		--KROMER_LOG("Interpolation "..ID.." does not exist!",2)
+		--return false
+	end
+end
+
+function self.GetValue(ID)
+	if moving[ID] ~= nil then
+		return moving[ID].obj
+	else
+		--KROMER_LOG("Interpolation "..ID.." does not exist!",2)
+		--return false
+	end
+end
+
+function self.SetValue(ID,start,tar,t,mode,timebased)
+	if timebased then
+		moving[ID] = {obj=start,mode=mode,tx=tar,sx=start,lx=start,t=t,ct=Time.time,tb=timebased,type="number"}
+		return true
+	else
+		moving[ID] = {obj=start,mode=mode,tx=tar,sx=start,lx=start,t=t,ct=0,tb=timebased,type="number"}
+		return true
+	end
+	return false
+end
+
 function self.MoveObj(obj,x,y,t,mode,timebased)
 	if timebased then
 		moving[#moving+1] = {obj=obj,mode=mode,tx=obj.absx+x,ty=obj.absy+y,sx=obj.absx,sy=obj.absy,lx=obj.absx,ly=obj.absy,t=t,ct=Time.time,tb=timebased}
@@ -216,10 +245,10 @@ function self.MoveObjTo(obj,x,y,t,mode,timebased)
 end
 
 function self.ClearObjMovement(obj)
-	for i=#moving,1,-1 do
+	for i in pairs(moving) do
 		local m = moving[i]
 		if m.obj == obj then
-			table.remove(moving,i)
+			moving[i] = nil
 		end
 	end
 end
@@ -227,22 +256,41 @@ end
 --call every frame for automatic interpolation
 
 function self.Update()
-	for i=#moving,1,-1 do
+	for i in pairs(moving) do
 		local m = moving[i]
-		if m.tb then
-			local newx,newy = self[m.mode](m.sx,m.tx,(Time.time-m.ct)/m.t),self[m.mode](m.sy,m.ty,(Time.time-m.ct)/m.t)
-			m.obj.Move(newx-m.lx,newy-m.ly)
-			m.lx,m.ly = newx,newy
-			if (Time.time-m.ct) >= m.t then
-				table.remove(moving,i)
+		if m.type ~= "number" then
+			if m.tb then
+				local newx,newy = self[m.mode](m.sx,m.tx,(Time.time-m.ct)/m.t),self[m.mode](m.sy,m.ty,(Time.time-m.ct)/m.t)
+				m.obj.Move(newx-m.lx,newy-m.ly)
+				m.lx,m.ly = newx,newy
+				if (Time.time-m.ct) >= m.t then
+					moving[i] = nil
+				end
+			else
+				m.ct = m.ct + 1
+				local newx,newy = self[m.mode](m.sx,m.tx,m.ct/m.t),self[m.mode](m.sy,m.ty,m.ct/m.t)
+				m.obj.Move(newx-m.lx,newy-m.ly)
+				m.lx,m.ly = newx,newy
+				if m.ct >= m.t then
+					moving[i] = nil
+				end
 			end
 		else
-			m.ct = m.ct + 1
-			local newx,newy = self[m.mode](m.sx,m.tx,m.ct/m.t),self[m.mode](m.sy,m.ty,m.ct/m.t)
-			m.obj.Move(newx-m.lx,newy-m.ly)
-			m.lx,m.ly = newx,newy
-			if m.ct >= m.t then
-				table.remove(moving,i)
+			if m.tb then
+				local newx = self[m.mode](m.sx,m.tx,(Time.time-m.ct)/m.t)
+				m.obj = newx
+				m.lx = newx
+				if (Time.time-m.ct) >= m.t then
+					moving[i] = nil
+				end
+			else
+				m.ct = m.ct + 1
+				local newx = self[m.mode](m.sx,m.tx,m.ct/m.t)
+				m.obj = newx
+				m.lx = newx
+				if m.ct >= m.t then
+					moving[i] = nil
+				end
 			end
 		end
 	end

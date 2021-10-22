@@ -1,0 +1,9 @@
+<bubble width="111">
+     <sprites>
+          <sprite name="bigtall">
+             <origin x="149" y="41"/>
+          </sprite>
+     </sprites>
+     <border x="10" y="22"/>
+     <origin x="149" y="41"/>
+</bubble>

@@ -8,7 +8,8 @@ end
 _set("sprite", "Entity "..__ID..".lua is missing a SPRITE!",     "missing_sprite_error")
 
 _set("magic", "Hero "..__ID..".lua is missing MAGIC (number)!", 0)
-_set("abilities", "Hero "..__ID..".lua is missing ABILITIES (table)!", {})
+_set("magicuser", "Hero "..__ID..".lua is missing MAGICUSER (boolean)!", false)
+if magicuser then _set("canact", "Hero "..__ID..".lua is missing CANACT (boolean)!", false) end
 _set("herocolor", "Hero "..__ID..".lua is missing HEROCOLOR (table)!", {1, 1, 1})
 _set("attackbarcolor", "Hero "..__ID..".lua is missing ATTACKBARCOLOR (table)!", {1, 1, 1})
 _set("damagecolor", "Hero "..__ID..".lua is missing DAMAGECOLOR (table)!", {1, 1, 1})
