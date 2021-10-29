@@ -1,3 +1,5 @@
+\*\* Kromer is still in development! Don't expect any results downloading it now! \*\*
+
 # Kromer-CYF
 Create Your Kris was made in CYF v0.6.2.2. That's old. Before masks and shaders, even. Despite the fact that it is being updated, many of the things it does are just not the best practice, and much of the code could be simplified.
 So, why should you trust me over the CREATOR of CYF and use Kromer instead of CYK?
