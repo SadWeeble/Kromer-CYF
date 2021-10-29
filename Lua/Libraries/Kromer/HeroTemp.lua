@@ -13,6 +13,7 @@ if magicuser then _set("canact", "Hero "..__ID..".lua is missing CANACT (boolean
 _set("herocolor", "Hero "..__ID..".lua is missing HEROCOLOR (table)!", {1, 1, 1})
 _set("attackbarcolor", "Hero "..__ID..".lua is missing ATTACKBARCOLOR (table)!", {1, 1, 1})
 _set("damagecolor", "Hero "..__ID..".lua is missing DAMAGECOLOR (table)!", {1, 1, 1})
+_set("actioncolor", "Hero "..__ID..".lua is missing ACTIONCOLOR (table)!", {1, 1, 1})
 
 _set("HandleCustomSpell", "Hero "..__ID..".lua is missing HandleCustomSpell (function)", function() end)
 _set("HandleAnimationChange", "Hero "..__ID..".lua is missing HandleAnimationChange (function)", function() end)
@@ -29,4 +30,5 @@ end
 local olds = sprite
 sprite = CreateSprite("missing_sprite_error","Entity")
 sprite["offset"] = {0,0}
+sprite.Mask("sprite")
 Set(olds)

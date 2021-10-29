@@ -29,17 +29,29 @@ sprite["glow"].Scale(1000,1000)
 sprite["glow"].SetParent(sprite)
 sprite["glow"].alpha = 0
 
+sprite["shaketimer"] = 0
+sprite["shakeoffset"] = {0,0}
+
 function Update()
+
+     if sprite["shaketimer"] >= 0 then
+          sprite["shakeoffset"][1] = -(sprite["shaketimer"] ^ 1.5)/2
+          sprite["shaketimer"] = sprite["shaketimer"] - 1
+     end
+
      if sprite.animcomplete and animations[currentanimation][3].immediate and sprite["nextanimation"] ~= false then
           SetAnimation(sprite["nextanimation"])
      end
-     sprite.SetPivot(0.5-sprite["offset"][1]/sprite.width, 0.5-sprite["offset"][2]/sprite.height)
-     sprite.Mask("sprite")
+     sprite.SetPivot(0.5-(sprite["offset"][1]+sprite["shakeoffset"][1])/sprite.width, 0.5-(sprite["offset"][2]+sprite["shakeoffset"][2])/sprite.height)
      --s.MoveTo(sprite.x,sprite.y)
 
      sprite["glow"].alpha = 0
 
      __u()
+end
+
+function Shake(length)
+     sprite["shaketimer"] = length or 10
 end
 
 _set = nil

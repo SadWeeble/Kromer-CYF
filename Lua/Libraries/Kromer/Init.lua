@@ -40,7 +40,7 @@ Kromer_States = {
      "INTRO",
      "ACTIONSELECT",
      "ENEMYSELECT",
-     "ALLYSELECT",
+     "HEROSELECT",
      "ENTITYSELECT",
      "ACTMENU",
      "MAGICMENU",
@@ -71,27 +71,26 @@ function Kromer_EnteringState(newstate, oldstate)
      elseif oldstate == "ENTITYSELECT" or oldstate == "HEROSELECT" or oldstate == "ENEMYSELECT" then
           UI_Text.CleanUpChildren()
           UI.EntitySelectCover.yscale = 0
-          -- for i = #entityselectelements, 1, -1 do
-          --      entityselectelements[i].Remove()
-          --      entityselectelements[i] = nil
-          --      --table.remove(entityselectelements,i)
-          -- end
-          --UI_Text = nil
-          --UI_Soul = nil
           uimenurefs = {}
      elseif oldstate == "ACTMENU" then
           UI_Text.CleanUpChildren()
           UI.ActMenuCover.yscale = 0
           uimenurefs = {}
+     elseif oldstate == "MAGICMENU" then
+          UI_Text.CleanUpChildren()
+          UI.MagicMenuCover.yscale = 0
+          uimenurefs = {}
      end
 
      if newstate == "INTRO" then
+          Audio.PlaySound(introsound or "weaponpull")
           -- Play all heroes' intro animations
           -- Actually, play enemy animations too
           for i = 1, #heroes  do  heroes[i].SetAnimation("Intro") end
           for i = 1, #enemies do enemies[i].SetAnimation("Intro") end
      elseif newstate == "ACTIONSELECT" then
           -- Hide Various UI Menus
+          TP.highlighted = 0
           UI.EntitySelectCover.yscale = 0
           -- Set Idle Animations
           if oldstate == "INTRO" then
@@ -101,6 +100,7 @@ function Kromer_EnteringState(newstate, oldstate)
                for i = 1, #enemies do
                     enemies[i].SetAnimation("Idle")
                end
+               Audio.Unpause()
           end
           -- Encounter Text
           if EncounterText == nil and encountertext ~= nil then
@@ -117,6 +117,10 @@ function Kromer_EnteringState(newstate, oldstate)
           -- Show Menu
           UI_Soul.SetParent(UI.ActMenuCover)
           UI.ActMenuCover.yscale = 115
+     elseif newstate == "MAGICMENU" then
+          -- Show Menu
+          UI_Soul.SetParent(UI.MagicMenuCover)
+          UI.MagicMenuCover.yscale = 115
      elseif newstate == "DIALOGUE" then
           EncounterText.Remove()
           TextSystem.CharacterPortrait.Set("empty")
@@ -231,6 +235,7 @@ TextSystem = require "TextSystem"
 UI = require "Kromer/UI"
 Interp = require "interpolation"
 XmlParser = require "XmlParser"
+TP = require "Kromer/TP"
 
 -- Utility Code from CYK --
 
@@ -291,14 +296,35 @@ function table.copy(orig)
     return copy
 end
 
+-- Parses a base 10 number into a base 16 number (unsigned)
+function NumberToHex(number)
+    number = math.abs(number)
+    local startNumber = number
+    local hex = ""
+    if type(number) == "number" then
+        repeat
+            local tempHex = number % 16
+            number = math.floor(number / 16)
+            hex = (tempHex < 10 and tostring(tempHex) or tostring(string.char(string.byte('a') + tempHex - 10))) .. hex
+        until number == 0
+    else
+        error("NumberToHex() needs a number variable.")
+    end
+
+    if string.len(hex) == 1 then hex = 0 .. hex end
+
+    return hex
+end
+
+
 -- Other functions
 
 function lerp(a,b,t)
      return a+(b-a)*t
 end
 
-function map(inmin,inmax,outmin,outmax,value)
-     return outmax + (value - inmin) * (outmax - outmin) / (inmax - inmin)
+function map(a1,a2,b1,b2,s)
+    return b1+(s-a1)*(b2-b1)/(a2-a1)
 end
 
 KROMER_LOG("Kromer Initialized",3)

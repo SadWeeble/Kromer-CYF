@@ -48,7 +48,7 @@ function EncounterStarting()
           hero_actions[i] = {action="none",targets={},parameters={}}
           past_actions[i] = 1
           linked_actions[i] = 0
-          UI_Positions[heroes[i]] = {fight=1,act=1,command={1,1},item={1,1},mercy=1}
+          UI_Positions[heroes[i]] = {fight=1,act=1,magic=1,command={1,1},item={1,1},mercy=1}
           -- Replace string with hero object.
           local heroname = heroes[i]
           heroes[i] = {}
@@ -75,6 +75,7 @@ function EncounterStarting()
 
      -- Initialize Libraries
      UI.Init()
+     TP.Init()
 
      -- Music
      Audio.LoadFile(music or "mus_battle1")
@@ -151,7 +152,7 @@ function SingleFrame()
                if currentaction == 3 then State("ITEMMENU") end
 
                if currentaction == 5 then
-                    SetHeroAction(activehero,"defend")
+                    SetHeroAction(activehero,"defend",{},{tpchange=16})
                     NextHero()
                end
 
@@ -167,9 +168,11 @@ function SingleFrame()
           local pos = UI_Positions[heroes[activehero].__ID][menucontext]
           if Input.Up == 1 and pos > 1 then
                UI_Positions[heroes[activehero].__ID][menucontext] = pos - 1
+               Audio.PlaySound("menumove")
           end
           if Input.Down == 1 and pos < #uimenurefs then
                UI_Positions[heroes[activehero].__ID][menucontext] = pos + 1
+               Audio.PlaySound("menumove")
           end
 
           if Input.Confirm == 1 then
@@ -180,48 +183,121 @@ function SingleFrame()
                elseif menucontext == "act" then
                     menucontext = uimenurefs[pos]
                     State("ACTMENU")
+               elseif menucontext == "magic" then
+                    local spellpos = UI_Positions[heroes[activehero].__ID]["command"]
+                    local spell = heroes[activehero].spells[(spellpos[2]-1)*2+spellpos[1]-(heroes[activehero].canact and 1 or 0)]
+                    SetHeroAction(activehero,"magic",{uimenurefs[pos]},{spell=spell,tpchange=-spell.tpcost})
+                    State("ACTIONSELECT")
+                    NextHero()
                elseif menucontext == "mercy" then
                     SetHeroAction(activehero,"mercy",{uimenurefs[pos]},{})
                     State("ACTIONSELECT")
                     NextHero()
                end
+               Audio.PlaySound("menuconfirm")
           end
 
           if Input.Cancel == 1 then
                State("ACTIONSELECT")
+               Audio.PlaySound("menumove")
           end
      -- Move between commands
      elseif GetCurrentState() == "ACTMENU" then
           local pos = UI_Positions[heroes[activehero].__ID]["command"]
           if (Input.Left == 1 or Input.Right == 1) and (pos[1] == 2 or uimenurefs[pos[1]+(pos[2]-1)*2+1] ~= nil) then
                UI_Positions[heroes[activehero].__ID]["command"][1] = 3 - pos[1]
+               Audio.PlaySound("menumove")
           end
           if Input.Up == 1 and pos[2] > 1 then
                UI_Positions[heroes[activehero].__ID]["command"][2] = pos[2] - 1
+               Audio.PlaySound("menumove")
           end
           if Input.Down == 1 and uimenurefs[pos[1]+(pos[2]+1-1)*2] ~= nil then
                UI_Positions[heroes[activehero].__ID]["command"][2] = pos[2] + 1
+               Audio.PlaySound("menumove")
           end
 
           if Input.Confirm == 1 then
-               SetHeroAction(activehero,"act",{menucontext},{uimenurefs[pos[1]+(pos[2]-1)*2]})
-               if uimenurefs[pos[1]+(pos[2]-1)*2].partymembersrequired ~= nil then
-                    for i = 1, #uimenurefs[pos[1]+(pos[2]-1)*2].partymembersrequired do
-                         for a = 1, #heroes do
-                              if heroes[a].__ID == uimenurefs[pos[1]+(pos[2]-1)*2].partymembersrequired[i] then
-                                   SetHeroAction(a,"act",menucontext,uimenurefs[pos[1]+(pos[2]-1)*2])
+               if uimenurefs[pos[1]+(pos[2]-1)*2].selectable then
+                    SetHeroAction(activehero,"act",menucontext,{act=uimenurefs[pos[1]+(pos[2]-1)*2],tpchange=-uimenurefs[pos[1]+(pos[2]-1)*2].tpcost})
+                    if uimenurefs[pos[1]+(pos[2]-1)*2].partymembersrequired ~= nil then
+                         for i = 1, #uimenurefs[pos[1]+(pos[2]-1)*2].partymembersrequired do
+                              for a = 1, #heroes do
+                                   if heroes[a].__ID == uimenurefs[pos[1]+(pos[2]-1)*2].partymembersrequired[i] then
+                                        SetHeroAction(a,"act")
+                                   end
                               end
                          end
                     end
+                    State("ACTIONSELECT")
+                    NextHero()
+                    Audio.PlaySound("menuconfirm")
+               else
                end
-               State("ACTIONSELECT")
-               NextHero()
           end
 
           if Input.Cancel == 1 then
                -- Don't remember hero command ui position
                UI_Positions[heroes[activehero].__ID]["command"] = {1,1}
                State("ACTIONSELECT")
+               Audio.PlaySound("menumove")
+          end
+     -- Move between spells
+     elseif GetCurrentState() == "MAGICMENU" then
+          local pos = UI_Positions[heroes[activehero].__ID]["command"]
+          if (Input.Left == 1 or Input.Right == 1) and (pos[1] == 2 or uimenurefs[pos[1]+(pos[2]-1)*2+1] ~= nil) then
+               UI_Positions[heroes[activehero].__ID]["command"][1] = 3 - pos[1]
+               Audio.PlaySound("menumove")
+          end
+          if Input.Up == 1 and pos[2] > 1 then
+               UI_Positions[heroes[activehero].__ID]["command"][2] = pos[2] - 1
+               Audio.PlaySound("menumove")
+          end
+          if Input.Down == 1 and uimenurefs[pos[1]+(pos[2]+1-1)*2] ~= nil then
+               UI_Positions[heroes[activehero].__ID]["command"][2] = pos[2] + 1
+               Audio.PlaySound("menumove")
+          end
+
+          if Input.Confirm == 1 then
+               if uimenurefs[pos[1]+(pos[2]-1)*2].selectable then
+                    DEBUG(uimenurefs[pos[1]+(pos[2]-1)*2].targettype)
+                    if uimenurefs[pos[1]+(pos[2]-1)*2].targettype == "Entity" then
+                         menucontext = "magic"
+                         State("ENTITYSELECT")
+                    elseif uimenurefs[pos[1]+(pos[2]-1)*2].targettype == "Hero" then
+                         menucontext = "magic"
+                         State("HEROSELECT")
+                    elseif uimenurefs[pos[1]+(pos[2]-1)*2].targettype == "Enemy" then
+                         menucontext = "magic"
+                         State("ENEMYSELECT")
+                    elseif uimenurefs[pos[1]+(pos[2]-1)*2].targettype == "AllEntity" or uimenurefs[pos[1]+(pos[2]-1)*2].targettype == "AllHero" or uimenurefs[pos[1]+(pos[2]-1)*2].targettype == "AllEnemy" then
+                         local targets = {}
+                         local spellpos = UI_Positions[heroes[activehero].__ID]["command"]
+                         local spell = heroes[activehero].spells[(spellpos[2]-1)*2+spellpos[1]-(heroes[activehero].canact and 1 or 0)]
+                         SetHeroAction(activehero,"magic",targets,{spell=spell,tpchange=-spell.tpcost})
+                         if spell.partymembersrequired ~= nil then
+                              for i = 1, #spell.partymembersrequired do
+                                   for a = 1, #heroes do
+                                        if heroes[a].__ID == spell.partymembersrequired[i] then
+                                             if hero_actions[a].parameters.tpchange ~= nil then AddTP(-hero_actions[a].parameters.tpchange) end
+                                             SetHeroAction(a,"magic")
+                                        end
+                                   end
+                              end
+                         end
+                         State("ACTIONSELECT")
+                         NextHero()
+                    end
+                    Audio.PlaySound("menuconfirm")
+               else
+               end
+          end
+
+          if Input.Cancel == 1 then
+               -- Don't remember hero command ui position
+               UI_Positions[heroes[activehero].__ID]["command"] = {1,1}
+               State("ACTIONSELECT")
+               Audio.PlaySound("menumove")
           end
      end
 
@@ -236,6 +312,7 @@ function SingleFrame()
 
      TextSystem.Update()
      UI.Update()
+     TP.Update()
 
      __u()
 end
@@ -244,7 +321,12 @@ end
 function SetHeroAction(heroNum,newaction,newtarget,newparam)
      newtarget = newtarget or {}
      newparam = newparam or {}
-     hero_actions[heroNum] = {action=newaction,targets={},parameters={}}
+
+     local oldtp = TP.tp
+     if newparam.tpchange ~= nil then AddTP(newparam.tpchange) end
+     newparam.tpchange = TP.tp - oldtp -- Prevent Spamton from taking our TP
+
+     hero_actions[heroNum] = {action=newaction,targets=newtarget,parameters=newparam}
      past_actions[heroNum] = currentaction
      local anim = heroes[heroNum].currentanimation
      for k,v in pairs(heroes[heroNum].animations) do
@@ -266,12 +348,8 @@ function SetHeroAction(heroNum,newaction,newtarget,newparam)
           end
           targettext = targettext .. " }"
           local paramtext = "{ "
-          for i = 1, #newparam do
-               if i == #newparam then
-                    paramtext = paramtext .. tostring(newparam[i])
-               else
-                    paramtext = paramtext .. tostring(newparam[i]) .. ", "
-               end
+          for k,v in pairs(newparam) do
+               paramtext = paramtext .. k .. " = " .. tostring(newparam[k]) .. ", "
           end
           paramtext = paramtext .. " }"
           KROMER_LOG("Hero "..heroes[heroNum].name.." Action Set: \""..newaction.."\", Targets: "..targettext..", Parameters: "..paramtext..", Linked To: "..(linked_actions[heroNum] == 0 and "No One" or heroes[linked_actions[heroNum]].name).."'s Action",3)
@@ -295,14 +373,26 @@ end
 -- Select the previous hero
 function PreviousHero()
      activehero = previoushero[activehero]
+
+     if hero_actions[activehero].parameters.tpchange ~= nil then AddTP(-hero_actions[activehero].parameters.tpchange) end
+
      hero_actions[activehero] = {action="none",targets={},parameters={}}
      heroes[activehero].SetAnimation("Idle")
      for i = 1, #heroes do
           if linked_actions[i] == activehero then
                linked_actions[i] = 0
                hero_actions[i] = {action="none",targets={},parameters={}}
+               heroes[i].SetAnimation("Idle")
           end
      end
+
+     for i = 1, #heroes do -- Funk to un-funk my funky code. Specifically, requiring previous heroes who have already chosen an action in actions
+          if hero_actions[i].action == "none" then
+               activehero = i
+               break
+          end
+     end
+
      currentaction = past_actions[activehero] or 1
 end
 

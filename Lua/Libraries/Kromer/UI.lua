@@ -184,12 +184,15 @@ table.insert(herohighlight.parts,herohighlight.bottom)
 
 local heroparticles    = {}     -- The "particles" that emit in the current hero's information box
 
-entityselectelements   = {}     -- The elements that make up the entity select screen.
 uimenurefs             = {}     -- A table that contains information that Kromer needs to properly display and navigate menus
 
 UI_Text                = nil    -- Text that appears in UI menus (Excluding Encounter Text)
 UI_Soul                = nil    -- The Soul that appears in UI menus (Excluding the Arena)
+
+
 local modifiables      = {}     -- Only used in the entity select screen
+
+UI_DescriptionText     = nil    -- Description text seen in ACT/MAGIC/ITEM menus
 
 local names            = ""     -- Names in the entity select screen
 local hpidentifier     = nil    -- The squished HP text in the entity select screen
@@ -199,25 +202,27 @@ local entityselecttime = 0      -- Used in highlighting entities
 local oldpos           = 0
 local offset           = 0
 
+local damagenumbers    = {}     -- The several hundred numbers that appear when Sans uses his extremely unfair attacks on you
+-- Entrance types: Bounce, slideright, slideleft, unsquish
+-- Exit types: Flyup
+
 -- Initializes various UI elements
 UI.Init = function()
      UI_Soul = CreateSprite(Kromer_FindSprite("ut-heart"),"HighestUI")
      UI_Soul.SetParent(UI.EntitySelectCover)
      UI_Soul.MoveTo(63,87)
-     table.insert(entityselectelements,UI_Soul)
 
      UI_Text = TextSystem.CreateText("","BattleUIText",81,79,"HighestUI")
-     table.insert(entityselectelements,UI_Text)
+
+     UI_DescriptionText = TextSystem.CreateText("","BattleUIText",500,79,"HighestUI")
 
      hpidentifier = TextSystem.CreateText("[instant]".."HP","BattleUIText",420+5,95+15-12.5,"HighestUI")
      hpidentifier["text"].SetParent(UI.EntitySelectCover)
      hpidentifier["text"].Scale(1,0.5)
-     table.insert(entityselectelements,hpidentifier)
 
      mercyidentifier = TextSystem.CreateText("[instant]".."MERCY","BattleUIText",520+5,95+15-12.5,"HighestUI")
      mercyidentifier["text"].SetParent(UI.EntitySelectCover)
      mercyidentifier["text"].Scale(1,0.5)
-     table.insert(entityselectelements,mercyidentifier)
 
      for i = 0, 3 do
 
@@ -232,7 +237,6 @@ UI.Init = function()
           hpempty.MoveToAbs(420,95-30*i)
           hpempty["i"] = i
           modifiables[i+1]["hpempty"] = hpempty
-          table.insert(entityselectelements,hpempty)
 
           local hpfill = CreateSprite("px","HighestUI")
           hpfill.SetParent(UI.EntitySelectCover)
@@ -243,7 +247,6 @@ UI.Init = function()
           hpfill.MoveToAbs(420,95-30*i)
           hpfill["i"] = i
           modifiables[i+1]["hp"] = hpfill
-          table.insert(entityselectelements,hpfill)
 
           local percentage = math.ceil((100)).."%"
 
@@ -252,7 +255,6 @@ UI.Init = function()
           hptext["text"].Scale(1,0.5)
           hptext["i"] = i
           modifiables[i+1]["hptext"] = hptext
-          table.insert(entityselectelements,hptext)
 
           local mercyempty = CreateSprite("px","HighestUI")
           mercyempty.SetParent(UI.EntitySelectCover)
@@ -263,7 +265,6 @@ UI.Init = function()
           mercyempty.MoveToAbs(520,95-30*i)
           mercyempty["i"] = i
           modifiables[i+1]["mercyempty"] = mercyempty
-          table.insert(entityselectelements,mercyempty)
 
           local mercyfill = CreateSprite("px","HighestUI")
           mercyfill.SetParent(UI.EntitySelectCover)
@@ -274,7 +275,6 @@ UI.Init = function()
           mercyfill.MoveToAbs(520,95-30*i)
           mercyfill["i"] = i
           modifiables[i+1]["mercy"] = mercyfill
-          table.insert(entityselectelements,mercyfill)
 
           local percentage = math.ceil((0)).."%"
 
@@ -284,10 +284,13 @@ UI.Init = function()
           mercytext["text"].color = {0.5,0,0}
           mercytext["i"] = i
           modifiables[i+1]["mercytext"] = mercytext
-          table.insert(entityselectelements,mercytext)
 
           modifiables[i+1]["values"] = {0,0}
      end
+end
+
+UI.CreateDamageNumbers = function(text, position, color, entrance, exit, age)
+     damagenumbers[#damagenumbers+1] = {text, position, color, entrance, exit, age}
 end
 
 -- Updates UI
@@ -512,6 +515,7 @@ UI.Update = function()
      -- Act Menu
      if GetCurrentState() == "ACTMENU" then
           if #uimenurefs == 0 then
+               --UI_Positions[heroes[activehero].__ID]["command"] = {1,1}
                names = ""
                local x = 0
                local y = 0
@@ -526,6 +530,8 @@ UI.Update = function()
                for i = 1, #arr do
                     uimenurefs[#uimenurefs+1] = arr[i]
                     local icons = ""
+                    local selectable = true
+                    arr[i]["selectable"] = true
                     numicons = 0
                     iconwid = 0
                     if arr[i].partymembersrequired ~= nil then
@@ -539,35 +545,138 @@ UI.Update = function()
                               s = nil
                               iconwid = iconwid + w
                               icons = icons .. "[icon:Heroes/" .. arr[i].partymembersrequired[a] .. "/UI/icon,"..x..","..y.."]" .. string.rep("é",math.floor(w/3))
+                              for b = 1, #heroes do
+                                   if heroes[b].__ID == arr[i].partymembersrequired[a] then
+                                        if heroes[b].hp <= 0 and not heroes[b].immortal then
+                                             selectable = false
+                                             arr[i]["selectable"] = false
+                                        end
+                                   end
+                              end
+                         end
+                         if arr[i].tpcost > TP.tp then
+                              selectable = false
+                              arr[i]["selectable"] = false
                          end
                     end
+                    local color = ""
+                    if not selectable then color = "[color:808080]" end
                     if i % 2 == 1 then
-                         names = names .. icons .. arr[i].name
+                         names = names .. icons .. color .. arr[i].name .. "[color:ffffff]"
                          iconspre = numicons > 0
                     else
                          UI_Text["text"].SetText("[font:uidialog]" .. (iconspre and iconspaces or "") .. arr[i-1].name)
-                         names = names .. "[charspacing:"..(175-UI_Text["text"].GetTextWidth()).."] [charspacing:default]" .. icons .. arr[i].name .. "\n"
+                         names = names .. "[charspacing:"..(175-UI_Text["text"].GetTextWidth()).."] [charspacing:default]" .. icons .. color .. arr[i].name .. "[color:ffffff]" ..  "\n"
                     end
                end
                UI_Text["text"].SetText(TextSystem.formatstring(UI_Text, "[font:uidialog][instant]"..names, "BattleUIText"))
                UI_Text["text"].SetParent(UI.ActMenuCover)
+               UI_DescriptionText["text"].SetParent(UI.ActMenuCover)
           end
-
           local pos = UI_Positions[heroes[activehero].__ID]["command"]
-
           if pos[2]-offset > 3 or pos[2]-offset < 1 then
                offset = math.max(math.min(pos[2]-2,math.ceil(#uimenurefs/2)-3),0)
           end
 
+          local act = uimenurefs[(pos[2]-1)*2+pos[1]]
+
+          TP.highlighted = act.tpcost
+
           UI_Soul.MoveToAbs(63+180*(pos[1]-1),87-30*(pos[2]-1-offset))
-
           UI_Text["text"].MoveToAbs(81,79+30*offset)
+          UI_DescriptionText["text"].MoveToAbs(500,79)
 
-
+          local desc = ""
+          if act.description ~= "" then desc = act.description .. "\n" end
+          if act.tpcost ~= 0 then desc = desc .. "[color:"..NumberToHex(TP.color_fill[1]*255)..NumberToHex(TP.color_fill[2]*255)..NumberToHex(TP.color_fill[3]*255).."]"..act.tpcost.."% TP" end
+          UI_DescriptionText["text"].SetText(TextSystem.formatstring(UI_Text, "[font:uidialog][instant]"..desc, "BattleUIText"))
 
           menucontext["sprite"]["glow"].alpha = math.abs(math.sin((Time.time-entityselecttime)*3))
      end
+     -- Magic Menu
+     if GetCurrentState() == "MAGICMENU" then
+          if #uimenurefs == 0 then
+               --UI_Positions[heroes[activehero].__ID]["command"] = {1,1}
+               names = ""
+               local x = 0
+               local y = 0
+               local numicons = 0
+               local iconwid = 0
+               local iconspre = false
+               local iconspaces = "     "
+               local arr = table.copy(menucontext.spells)
+               if menucontext.canact then
+                    table.insert(arr,1,{name="[color:"..NumberToHex(menucontext.actioncolor[1]*255)..NumberToHex(menucontext.actioncolor[2]*255)..NumberToHex(menucontext.actioncolor[3]*255).."]"..string.sub(menucontext.name,1,1).."-Action[color:ffffff]",description="",tpcost=0,partymembersrequired={}})
+               end
+               for i = 1, #arr do
+                    uimenurefs[#uimenurefs+1] = arr[i]
+                    local icons = ""
+                    numicons = 0
+                    iconwid = 0
+                    local selectable = true
+                    arr[i]["selectable"] = true
+                    numicons = 0
+                    iconwid = 0
+                    if arr[i].partymembersrequired ~= nil then
+                         for a = 1, #arr[i].partymembersrequired do
+                              x = ((i-1) % 2) * 180 + 16 + iconwid
+                              y = -math.floor((i-1)/2)*30 + 10
+                              numicons = numicons + 1
+                              local s = CreateSprite("Heroes/" .. arr[i].partymembersrequired[a] .. "/UI/icon")
+                              local w = s.width+2
+                              s.Remove()
+                              s = nil
+                              iconwid = iconwid + w
+                              icons = icons .. "[icon:Heroes/" .. arr[i].partymembersrequired[a] .. "/UI/icon,"..x..","..y.."]" .. string.rep("é",math.floor(w/3))
+                              for b = 1, #heroes do
+                                   if heroes[b].__ID == arr[i].partymembersrequired[a] then
+                                        if heroes[b].hp <= 0 and not heroes[b].immortal then
+                                             selectable = false
+                                             arr[i]["selectable"] = false
+                                        end
+                                   end
+                              end
+                         end
+                         if arr[i].tpcost > TP.tp then
+                              selectable = false
+                              arr[i]["selectable"] = false
+                         end
+                    end
+                    local color = ""
+                    if not selectable then color = "[color:808080]" end
+                    if i % 2 == 1 then
+                         names = names .. icons .. color .. arr[i].name
+                         iconspre = numicons > 0
+                    else
+                         UI_Text["text"].SetText("[font:uidialog]" .. (iconspre and iconspaces or "") .. arr[i-1].name)
+                         names = names .. "[charspacing:"..(175-UI_Text["text"].GetTextWidth()).."] [charspacing:default]" .. icons .. color .. arr[i].name .. "\n"
+                    end
+               end
+               UI_Text["text"].SetText(TextSystem.formatstring(UI_Text, "[font:uidialog][instant]"..names, "BattleUIText"))
+               UI_Text["text"].SetParent(UI.MagicMenuCover)
+               UI_DescriptionText["text"].SetParent(UI.MagicMenuCover)
+          end
+          local pos = UI_Positions[heroes[activehero].__ID]["command"]
+          if pos[2]-offset > 3 or pos[2]-offset < 1 then
+               offset = math.max(math.min(pos[2]-2,math.ceil(#uimenurefs/2)-3),0)
+          end
 
+          local spell = uimenurefs[(pos[2]-1)*2+pos[1]]
+
+          TP.highlighted = spell.tpcost
+
+          UI_Soul.MoveToAbs(63+180*(pos[1]-1),87-30*(pos[2]-1-offset))
+          UI_Text["text"].MoveToAbs(81,79+30*offset)
+          UI_DescriptionText["text"].MoveToAbs(500,79)
+
+          local desc = ""
+          if spell.description ~= "" then desc = "[color:808080]" .. spell.description .. "\n" end
+          if spell.tpcost ~= 0 then desc = desc .. "[color:"..NumberToHex(TP.color_fill[1]*255)..NumberToHex(TP.color_fill[2]*255)..NumberToHex(TP.color_fill[3]*255).."]"..spell.tpcost.."% TP" end
+          UI_DescriptionText["text"].SetText(TextSystem.formatstring(UI_Text, "[font:uidialog][instant]"..desc, "BattleUIText"))
+     end
+
+     for i = #damagenumbers, 1, -1 do
+     end
 end
 
 KROMER_LOG("Kromer UI Initialized", 3)

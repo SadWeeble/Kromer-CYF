@@ -3,8 +3,8 @@ require "Kromer/Init"
 ---------------------
 
 --encountertext = "[character:Heroes/ralsei/Faces/][expression:2]What you're calling [highlight:0000ff]Linux[endhighlight] is\ractually [highlight:00ff00]GNU Linux[endhighlight], or as I\rlike to call it, [highlight:aaaaaa]compooter[endhighlight]."
---encountertext = "[character:Heroes/susie/Faces/][expression:18]Wait, you aren't Nubert![smallface:Heroes/noelle/Faces/14,W-who's Nubert?!,bottom,50,0]"
-encountertext = "[character:Heroes/ralsei/Faces/][expression:14]I am going to commit several\r[highlight:ff0000]WAR CRIMES[endhighlight]![smallface:Heroes/susie/Faces/17,Ralsei{_COMMA_} NOOO!!,bottom,0,-50]"
+encountertext = "[character:Heroes/susie/Faces/][expression:18][voice:susie]Wait, you aren't Nubert![smallface:Heroes/noelle/Faces/14,W-who's Nubert?!,bottom,50,0]"
+--encountertext = "[character:Heroes/ralsei/Faces/][expression:14][voice:ralsei]I am going to commit several\r[highlight:ff0000]WAR CRIMES[endhighlight]![smallface:Heroes/susie/Faces/17,Ralsei{_COMMA_} NOOO!!,bottom,0,-50]"
 nextwaves = {"bullettest_chaserorb"}
 wavetimer = 4.0
 arenasize = {155, 130}

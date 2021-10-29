@@ -35,4 +35,5 @@ end
 local olds = sprite
 sprite = CreateSprite("missing_sprite_error","Entity")
 sprite["offset"] = {0,0}
+sprite.Mask("sprite")
 Set(olds)

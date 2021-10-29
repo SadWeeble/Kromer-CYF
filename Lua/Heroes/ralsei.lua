@@ -18,10 +18,11 @@ statuses  = {}                                         -- Status effects that ca
 herocolor      = { 0, 1, 0 }                           -- Color used in this Hero's main UI
 attackbarcolor = { 0, .5, 0 }                          -- Color used in this Hero's attack bar
 damagecolor    = { 180/255, 230/255, 29/255 }          -- Color used in this Hero's damage text
+actioncolor    = { 0.5, 1, 0.5 }                       -- Color used in this Hero's X-Action text
 
 -- Spell name, desc, cost, target type, party members required
-AddSpell("Pacify", "Spare TIRED foe", 16, "Enemy")
-AddSpell("Heal Prayer", "Heal Ally", 32, "Hero")
+AddSpell("Pacify", "Spare\nTIRED Foe", 16, "Enemy")
+AddSpell("Heal Prayer", "Heal\nAlly", 32, "Hero")
 
 -- The animations table --
 -- KROMER searches "Heroes/<hero name>/<animation name or refer><addition>/<frame name>"
@@ -64,7 +65,7 @@ function OnRevive() end
 function HandleCustomSpell(spell) end
 
 -- Function called whenever this entity's animation is changed.
--- Make it return true if you want the animation to be changed like normal, otherwise do your own stuff here!
+-- It should return the next animation to play in string form, or false to not change animation
 function HandleAnimationChange(oldAnim, newAnim)
-     return true
+     return newAnim
 end

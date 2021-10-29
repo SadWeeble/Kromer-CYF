@@ -1,12 +1,12 @@
 -- A basic Hero Entity you can copy and modify for your own creations.
 
-sprite = "Idle/0"
-name = "Noelle"
-sideb = false       -- Deltarune internally refers to the Snowgrave route as "sideb". So that's what I'll call it.
-hp = 90
-attack = 3
-defense = 1
-immortal = false
+sprite    = "Idle/0"
+name      = "Noelle"
+sideb     = false       -- Deltarune internally refers to the Snowgrave route as "sideb". So that's what I'll call it.
+hp        = 90
+attack    = 3
+defense   = 1
+immortal  = false
 
 dialogbubble = "Automatic"                             -- Chapter 2's automatic dialogue bubble, very similar to CYF's
 
@@ -18,11 +18,13 @@ statuses  = {}                                         -- Status effects that ca
 herocolor      = { 1, 1, 0 }                           -- Color used in this Hero's main UI
 attackbarcolor = { 1, 1, 0 }                           -- Color used in this Hero's attack bar
 damagecolor    = { 255/255, 255/255, 76/255 }          -- Color used in this Hero's damage text
+actioncolor    = { 1, 1, 0.5 }                         -- Color used in this Hero's X-Action text
 
 -- Spell name, desc, cost, target type, party members required
-AddSpell("Heal Prayer", "Heal Ally.", 32, "Hero")
-AddSpell("Sleep Mist", "Spare TIRED foes.", 32, "AllEnemy")
-AddSpell("IceShock", "Damage w/ ICE", 16, "Enemy")
+AddSpell("Heal Prayer", "Heal\nAlly", 32, "Hero")
+AddSpell("Sleep Mist", "Spare\nTIRED Foes", 32, "AllEnemy")
+AddSpell("IceShock", "Damage\nw/ ICE", 16, "Enemy")
+AddSpell("Suselle", "Hoochi\nMamma!", 100, "AllHero", {"susie"})
 --AddSpell("SnowGrave", "Fatal", 100, "Enemy")
 
 -- The animations table --
@@ -50,7 +52,7 @@ animations = {
      SpellReady     = { "Auto",    1/6,      { next = "Spell", offset = {-0.5,3}, onselect = "magic" } },
      Spell          = { "Auto",    1/15,     { loopmode = "ONESHOT", next = "Idle", offset = {2.5,3} } },
      --MercyReady     = { "Auto",    1/6,      { next = "Mercy", offset = {10.5,3}, refer = "ActReady", onselect = "mercy" }, },
-     Mercy          = { "Auto",    1/15,     { loopmode = "ONESHOT", next = "Idle", offset = {10.5,3}, refer = "Act" } },
+     Mercy          = { "Auto",    1/15,     { loopmode = "ONESHOT", next = "Idle", offset = {2.5,3}, refer = "Spell", immediate = true } },
      Defend         = { "Auto",    1/15,     { loopmode = "ONESHOT", next = "Idle", offset = {0.5,3}, addition = ((sideb and "/SideB/") or ""), onselect = "defend" } },
      Hurt           = { "Auto",    1,        { next = "Idle", offset = {0.5,3}, addition = ((sideb and "/SideB/") or "") } },
      Down           = { "Auto",    1,        { offset = {0,0} } },
@@ -66,7 +68,7 @@ function OnRevive() end
 function HandleCustomSpell(spell) end
 
 -- Function called whenever this entity's animation is changed.
--- Make it return true if you want the animation to be changed like normal, otherwise do your own stuff here!
+-- It should return the next animation to play in string form, or false to not change animation
 function HandleAnimationChange(oldAnim, newAnim)
-     return true
+     return newAnim
 end

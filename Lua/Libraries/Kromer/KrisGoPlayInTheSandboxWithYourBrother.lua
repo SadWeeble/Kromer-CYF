@@ -86,7 +86,14 @@ function CreateBlankEnvironment(envtype)
      }
 
      if envtype == "m" or envtype == "h" then
+          t.Encounter = _G
           t.SetAnimation = function(animationname)
+
+               local newanim = t.HandleAnimationChange(t.currentanimation,animationname)
+
+               if newanim ~= true then animationname = newanim end
+
+               if not animationname then return end
 
                if t.animations[animationname] == nil or #t.animations[animationname] ~= 3 or ((type(t.animations[animationname][1]) ~= "table" and type(t.animations[animationname][1]) ~= "string") or type(t.animations[animationname][2]) ~= "number" or (type(t.animations[animationname][3]) ~= "table" and type(t.animations[animationname][3]) ~= "nil")) then
                     t.KROMER_LOG("Entity "..t.__ID..".lua: \""..animationname.."\" is not a valid animation.",2)

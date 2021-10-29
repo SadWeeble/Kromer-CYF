@@ -60,7 +60,7 @@ end
 function HandleCustomSpell(spell) end
 
 -- Function called whenever this entity's animation is changed.
--- Make it return true if you want the animation to be changed like normal, otherwise do your own stuff here!
+-- It should return the next animation to play in string form, or false to not change animation
 function HandleAnimationChange(oldAnim, newAnim)
-     return true
+     return newAnim
 end

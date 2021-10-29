@@ -20,9 +20,10 @@ statuses  = {}                                         -- Status effects that ca
 herocolor      = { 1, 0, 1 }                           -- Color used in this Hero's main UI
 attackbarcolor = { 0.5, 0, 0.5 }                       -- Color used in this Hero's attack bar
 damagecolor    = { 234/255, 121/255, 200/255 }         -- Color used in this Hero's damage text
+actioncolor    = { 1, 0.5, 1 }                         -- Color used in this Hero's X-Action text
 
 -- Spell name, desc, cost, target type, party members required
-AddSpell("Rude Buster", "Rude Damage", 50, "Enemy")
+AddSpell("Rude Buster", "Rude\nDamage", 50, "Enemy")
 
 
 function GetAddition()
@@ -62,9 +63,9 @@ animations = {
      ItemReady      = { "Auto",    1/6,      { next = "Item", offset = {-9.5,0}, addition = GetAddition, onselect = "item" } },
      Item           = { "Auto",    1/15,     { loopmode = "ONESHOT", next = "Idle", offset = {-9.5,0}, addition = GetAddition } },
      SpellReady     = { "Auto",    1/6,      { next = "Spell", offset = {4,5.5}, addition = GetAddition, onselect = "magic" } },
-     Spell          = { "Auto",    1/15,     { loopmode = "ONESHOT", next = "Idle", offset = {4,13}, addition = GetAddition } },
+     Spell          = { "Auto",    1/15,     { loopmode = "ONESHOT", next = "Idle", offset = {4,13}, addition = GetAddition, immediate = true } },
      --MercyReady     = { "Auto",    1/6,      { next = "Mercy", offset = {14,11}, addition = GetAddition, refer = "ActReady", onselect = "mercy" } },
-     Mercy          = { "Auto",    1/15,     { loopmode = "ONESHOT", next = "Idle", offset = {14,11}, addition = GetAddition, refer = "Spell" } },
+     Mercy          = { "Auto",    1/15,     { loopmode = "ONESHOT", next = "Idle", offset = {4,13}, addition = GetAddition, refer = "Spell", immediate = true } },
      Defend         = { "Auto",    1/15,     { loopmode = "ONESHOT", next = "Idle", offset = {-7,12}, addition = GetAddition, onselect = "defend" } },
      Hurt           = { "Auto",    1,        { next = "Idle", offset = {-10,0}, addition = GetAddition } },
      Down           = { "Auto",    1,        { offset = {-10,0}, addition = GetAddition } },
@@ -79,7 +80,7 @@ function OnRevive() end
 function HandleCustomSpell(spell) end
 
 -- Function called whenever this entity's animation is changed.
--- Make it return true if you want the animation to be changed like normal, otherwise do your own stuff here!
+-- It should return the next animation to play in string form, or false to not change animation
 function HandleAnimationChange(oldAnim, newAnim)
-     return true
+     return newAnim
 end
