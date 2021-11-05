@@ -50,6 +50,20 @@ function Update()
      __u()
 end
 
+function AddStatus(sname,scolor)
+     table.insert(statuses,{sname,scolor})
+end
+
+function RemoveStatus(sname)
+     for i = 1, #statuses do
+          if statuses[i] == "sname" then
+               table.remove(statuses,i)
+               return true
+          end
+     end
+     return false
+end
+
 function Shake(length)
      sprite["shaketimer"] = length or 10
 end

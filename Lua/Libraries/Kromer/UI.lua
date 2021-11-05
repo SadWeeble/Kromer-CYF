@@ -201,13 +201,18 @@ local mercyidentifier  = nil    -- The squished MERCY text in the entity select 
 local entityselecttime = 0      -- Used in highlighting entities
 local oldpos           = 0
 local offset           = 0
+local HeroNameWidth    = 0
+local EnemyNameWidth   = 0
 
 local damagenumbers    = {}     -- The several hundred numbers that appear when Sans uses his extremely unfair attacks on you
--- Entrance types: Bounce, slideright, slideleft, unsquish
--- Exit types: Flyup
+-- Entrance types: Entrance_Appear, Entrance_Fade, Entrance_Bounce, Entrance_SlideRight, Entrance_SlideLeft, Entrance_Unsquish
+-- Exit types: Exit_Disappear, Exit_Fade, Exit_Bounce, Exit_SlideRight, Exit_SlideLeft, Exit_FlyUp
 
 -- Initializes various UI elements
 UI.Init = function()
+
+     HideBackground()
+
      UI_Soul = CreateSprite(Kromer_FindSprite("ut-heart"),"HighestUI")
      UI_Soul.SetParent(UI.EntitySelectCover)
      UI_Soul.MoveTo(63,87)
@@ -289,12 +294,26 @@ UI.Init = function()
      end
 end
 
-UI.CreateDamageNumbers = function(text, position, color, entrance, exit, age)
-     damagenumbers[#damagenumbers+1] = {text, position, color, entrance, exit, age}
+UI.CreateDamageNumber = function(text, position, color, entrance, exit, age)
+     local dmg = damagenumbers[#damagenumbers+1]
+     dmg = TextSystem.CreateText("[instant]"..text,"BattleUIText",position[1],position[2])
+     dmg["text"].Scale(2,2)
+     dmg["position"] = position
+     dmg["color"]    = color
+     dmg["entrance"] = entrance
+     dmg["exit"]     = exit
+     dmg["age"]      = age
+     dmg["lifetime"] = 0
+     table.insert(damagenumbers,dmg)
 end
 
 -- Updates UI
 UI.Update = function()
+
+     if Input.Menu == 1 then
+          UI.CreateDamageNumber("[font:BattleMessage]Recruit", {320,240}, {255/255,242/255,0}, "Entrance_Unsquish", "Exit_Disappear", 2)
+     end
+
      -- Update Background
      if UI.backgroundvisible then
           background1.MoveTo(320-(GetFrame()/2)%50,240+(GetFrame()/2)%50+10)
@@ -417,23 +436,77 @@ UI.Update = function()
      -- Entity Select State
      if entityselectstate then
           if #uimenurefs == 0 then
+               HeroNameWidth = 0
+               EnemyNameWidth = 0
+               for i = 1, #heroes do
+                    UI_Text["text"].SetText("[font:uidialog]"..heroes[i].name)
+                    HeroNameWidth = math.max(UI_Text["text"].GetTextWidth(),HeroNameWidth)
+               end
+               HeroNameWidth = HeroNameWidth + 25
+               for i = 1, #enemies do
+                    UI_Text["text"].SetText("[font:uidialog]"..enemies[i].name)
+                    EnemyNameWidth = math.max(UI_Text["text"].GetTextWidth(),EnemyNameWidth)
+               end
+               EnemyNameWidth = EnemyNameWidth + 25
                entityselecttime = Time.time
                names = ""
                if GetCurrentState() == "HEROSELECT" or GetCurrentState() == "ENTITYSELECT" then
                     for i = 1, #heroes do
                          uimenurefs[#uimenurefs+1] = heroes[i]
-                         names = names .. heroes[i].name .. "\n"
+                         UI_Text["text"].SetText("[font:uidialog]"..heroes[i].name)
+                         local icons = ""
+                         local name = heroes[i].name
+                         names = names .. name .. "[charspacing:"..HeroNameWidth-UI_Text["text"].GetTextWidth().."]é[charspacing:default]" .. icons .. "\n"
                     end
                end
 
                if GetCurrentState() == "ENEMYSELECT" or GetCurrentState() == "ENTITYSELECT" then
                     for i = 1, #enemies do
                          uimenurefs[#uimenurefs+1] = enemies[i]
-                         names = names .. enemies[i].name .. "\n"
+                         UI_Text["text"].SetText("[font:uidialog]"..enemies[i].name)
+                         local icons = ""
+                         local name = ""
+                         if #enemies[i].statuses == 0 then
+                              name = "[color:ffffff]"..enemies[i].name
+                         else
+                              local sn = math.max(#enemies[i].statuses,1)
+                              for char = 1, #enemies[i].name do
+                                   local color = "ffffff"
+                                   local avgcolor = {0,0,0}
+
+                                   local statuslerp = map(1,#enemies[i].name,1,#enemies[i].statuses,char)
+                                   local col1 = enemies[i].statuses[math.floor(statuslerp)][2]
+                                   local col2 = enemies[i].statuses[math.ceil(statuslerp)][2]
+                                   local mix = statuslerp % 1
+
+                                   avgcolor[1] = lerp(col1[1],col2[1],mix)
+                                   avgcolor[2] = lerp(col1[2],col2[2],mix)
+                                   avgcolor[3] = lerp(col1[3],col2[3],mix)
+                                   color = NumberToHex(math.floor(avgcolor[1]*255)) .. NumberToHex(math.floor(avgcolor[2]*255)) .. NumberToHex(math.floor(avgcolor[3]*255))
+                                   name = name .. "[color:"..color.."]" .. string.sub(enemies[1].name,char,char)
+                              end
+
+                              local numicons = 0
+                              local iconwid = 0
+
+                              for status = 1, #enemies[i].statuses do
+                                   local x = EnemyNameWidth + iconwid
+                                   local y = 7-(i-1)*30
+                                   numicons = numicons + 1
+                                   local s = CreateSprite("UI/Battle/Statuses/" .. enemies[i].statuses[status][1])
+                                   local w = s.width+2
+                                   s.Remove()
+                                   s = nil
+                                   iconwid = iconwid + w
+                                   icons = icons .. "[icon:UI/Battle/Statuses/"..enemies[i].statuses[status][1]..","..x..","..y..",EntitySelectCover]" .. string.rep("é",math.floor(w/3))
+                              end
+
+                         end
+                         names = names .. name .. "[charspacing:"..EnemyNameWidth-UI_Text["text"].GetTextWidth().."]é[charspacing:default]" .. icons .. "\n"
                     end
                end
 
-               UI_Text["text"].SetText("[font:uidialog][instant]"..names)
+               UI_Text["text"].SetText(TextSystem.formatstring(UI_Text, "[font:uidialog][instant]"..names, "BattleUIText"))
                UI_Text["text"].SetParent(UI.EntitySelectCover)
           end
 
@@ -676,6 +749,52 @@ UI.Update = function()
      end
 
      for i = #damagenumbers, 1, -1 do
+          local dmg = damagenumbers[i]
+
+          dmg["lifetime"] = dmg["lifetime"] + Time.dt
+
+          dmg["text"].color = dmg.color
+          dmg["text"].MoveTo(dmg.position[1],dmg.position[2])
+
+          local speed = 5
+          local entfac = dmg["lifetime"]/(dmg["age"]/speed)
+
+          if dmg.entrance == "Entrance_Fade" then
+               dmg["text"].alpha = lerp(0,dmg.color[4] or 1,entfac)
+          elseif dmg.entrance == "Entrance_SlideRight" then
+               dmg["text"].MoveTo(dmg.position[1]+math.min(0,-50*(0.1^entfac)),dmg.position[2])
+               dmg["text"].alpha = lerp(0,dmg.color[4] or 1,entfac)
+          elseif dmg.entrance == "Entrance_SlideLeft" then
+               dmg["text"].MoveTo(dmg.position[1]-math.min(0,-50*(0.1^entfac)),dmg.position[2])
+               dmg["text"].alpha = lerp(0,dmg.color[4] or 1,entfac)
+          end
+
+          if dmg.exit == "Exit_Fade" and dmg["lifetime"]/dmg["age"] >= 1-1/speed then
+               dmg["text"].alpha = lerp(0,dmg.color[4] or 1,speed-entfac)
+          elseif dmg.exit == "Exit_SlideRight" and dmg["lifetime"]/dmg["age"] >= 1-1/speed then
+               dmg["text"].MoveTo(dmg.position[1]+50*(0.01^(speed-entfac)),dmg.position[2])
+               dmg["text"].alpha = lerp(0,dmg.color[4] or 1,speed-entfac)
+          elseif dmg.exit == "Exit_SlideLeft" and dmg["lifetime"]/dmg["age"] >= 1-1/speed then
+               dmg["text"].MoveTo(dmg.position[1]-50*(0.01^(speed-entfac)),dmg.position[2])
+               dmg["text"].alpha = lerp(0,dmg.color[4] or 1,speed-entfac)
+          end
+
+          if dmg.entrance == "Entrance_Unsquish" then
+               dmg["text"].xscale = math.max(2,4-entfac*3)
+               dmg["text"].yscale = math.min(2,entfac*3)
+               dmg["text"].alpha = lerp(0,dmg.color[4] or 1,entfac)
+
+               local w = dmg["text"].GetTextWidth() * (dmg["text"].xscale-2)/2
+               local h = dmg["text"].GetTextHeight() * (dmg["text"].yscale-2)/2
+
+               dmg["text"].MoveTo(dmg["text"].x-w,dmg["text"].y-h)
+          end
+
+          if dmg["lifetime"] > dmg["age"] then
+               dmg["text"].Remove()
+               dmg = nil
+               table.remove(damagenumbers,i)
+          end
      end
 end
 

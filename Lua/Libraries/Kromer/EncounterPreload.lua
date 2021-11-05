@@ -2,7 +2,7 @@
 local cover = CreateSprite("px","BelowBullet")
 cover.Scale(640,480)
 cover.color = {0,0,0}
---cover.color = {0.5,0.75,0.75}
+cover.color = {0.5,0.75,0.75}
 
 
 -- Encounter Starting --
@@ -181,8 +181,14 @@ function SingleFrame()
                     State("ACTIONSELECT")
                     NextHero()
                elseif menucontext == "act" then
-                    menucontext = uimenurefs[pos]
-                    State("ACTMENU")
+                    if heroes[activehero].magicuser and heroes[activehero].canact then
+                         SetHeroAction(activehero,"act",{uimenurefs[pos]},{act="Standard"})
+                         State("ACTIONSELECT")
+                         NextHero()
+                    else
+                         menucontext = uimenurefs[pos]
+                         State("ACTMENU")
+                    end
                elseif menucontext == "magic" then
                     local spellpos = UI_Positions[heroes[activehero].__ID]["command"]
                     local spell = heroes[activehero].spells[(spellpos[2]-1)*2+spellpos[1]-(heroes[activehero].canact and 1 or 0)]
@@ -260,7 +266,6 @@ function SingleFrame()
 
           if Input.Confirm == 1 then
                if uimenurefs[pos[1]+(pos[2]-1)*2].selectable then
-                    DEBUG(uimenurefs[pos[1]+(pos[2]-1)*2].targettype)
                     if uimenurefs[pos[1]+(pos[2]-1)*2].targettype == "Entity" then
                          menucontext = "magic"
                          State("ENTITYSELECT")
@@ -287,6 +292,9 @@ function SingleFrame()
                          end
                          State("ACTIONSELECT")
                          NextHero()
+                    elseif pos[1]+(pos[2]-1)*2 == 1 and heroes[activehero].canact then
+                         menucontext = "act"
+                         State("ENEMYSELECT")
                     end
                     Audio.PlaySound("menuconfirm")
                else

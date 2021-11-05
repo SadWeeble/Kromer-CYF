@@ -231,11 +231,12 @@ function error(msg,chunk)
 end
 
 require "Kromer/KrisGoPlayInTheSandboxWithYourBrother"
-TextSystem = require "TextSystem"
-UI = require "Kromer/UI"
-Interp = require "interpolation"
-XmlParser = require "XmlParser"
-TP = require "Kromer/TP"
+TextSystem   = require "TextSystem"
+UI           = require "Kromer/UI"
+Interp       = require "interpolation"
+XmlParser    = require "XmlParser"
+TP           = require "Kromer/TP"
+ItemManager  = require "ItemManager"
 
 -- Utility Code from CYK --
 

@@ -116,6 +116,9 @@ self.formatstring = function(object,string,type)
                local path = Kromer_FindSprite(args[1])
                local s = CreateSprite(path,"HighestUI")
                s.MoveTo(object.x+tonumber(args[2]),object.y+tonumber(args[3]))
+               if args[4] ~= nil then s.SetParent(UI[args[4]]) end
+               s["xoff"] = tonumber(args[2])
+               s["yoff"] = tonumber(args[3])
                table.insert(object["children"],s)
           end)
      end
@@ -147,6 +150,9 @@ self.Update = function()
 
                          c.x = t.x + c["xoff"] + c["slide"][1]
                          c.y = t.y + c["yoff"] + c["slide"][2]
+                    else
+                         c.absx = t["text"].absx + c["xoff"]
+                         c.absy = t["text"].absy + c["yoff"]
                     end
                end
 

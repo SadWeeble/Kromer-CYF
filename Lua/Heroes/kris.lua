@@ -16,6 +16,7 @@ statuses  = {}                               -- Status effects that can be appli
 herocolor      = { 0, 1, 1 }                 -- Color used in this Hero's main UI
 attackbarcolor = { 0, 0, .5 }                -- Color used in this Hero's attack bar
 damagecolor    = { 0, 162/255, 232/255 }     -- Color used in this Hero's damage text
+actioncolor    = {1, 1, 1}
 
 -- The animations table --
 -- KROMER searches "Heroes/<hero name>/<animation name or refer><addition>/<frame name>"

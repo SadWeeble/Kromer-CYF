@@ -151,7 +151,7 @@ function CreateBlankEnvironment(envtype)
                end
                if type(pmr) ~= "table" then
                     if type(pmr) == "nil" then
-                         KROMER_LOG(t.__ID..".lua Act "..name.." has an empty Party Members Required Table!",2)
+                         --KROMER_LOG(t.__ID..".lua Act "..name.." has an empty Party Members Required Table!",2)
                     else
                          KROMER_LOG(t.__ID..".lua Act "..name.." has an invalid Party Members Required Table!",1)
                     end
@@ -159,7 +159,7 @@ function CreateBlankEnvironment(envtype)
                end
                if type(pma) ~= "table" then
                     if type(pma) == "nil" then
-                         KROMER_LOG(t.__ID..".lua Act "..name.." has an empty Party Members Accessible Table!",2)
+                         --KROMER_LOG(t.__ID..".lua Act "..name.." has an empty Party Members Accessible Table!",2)
                     else
                          KROMER_LOG(t.__ID..".lua Act "..name.." has an invalid Party Members Accessible Table!",1)
                     end
@@ -191,7 +191,7 @@ function CreateBlankEnvironment(envtype)
                end
                if type(pmr) ~= "table" then
                     if type(pmr) == "nil" then
-                         KROMER_LOG(t.__ID..".lua Spell "..name.." has an empty Party Members Required Table!",2)
+                         --KROMER_LOG(t.__ID..".lua Spell "..name.." has an empty Party Members Required Table!",2)
                     else
                          KROMER_LOG(t.__ID..".lua Spell "..name.." has an invalid Party Members Required Table!",1)
                     end

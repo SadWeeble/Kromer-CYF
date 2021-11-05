@@ -10,16 +10,16 @@ randomdialogue = {
 
 -- Act name, act description, TP cost, party members required, party members viewable from
 --AddAct("Check", "", 0)
-AddAct("Talk",  "", 0)
+AddAct("Talk",  "", 0,  {})
 AddAct("Mock",  "", 10, { "susie" })
 AddAct("Dance", "", 30, { "ralsei" })
 AddAct("Test",  "", 0,  {"susie","noelle","ralsei"})
 
-sprite = "Idle/0"
-name = "Poseur"
-hp = 250
-attack = 10
-defense = 2
+sprite   = "Idle/0"
+name     = "Poseur"
+hp       = 250
+attack   = 10
+defense  = 2
 immortal = false
 
 dialogbubble = "automatic"                        -- Chapter 2's automatic dialogue bubble, very similar to CYF's
