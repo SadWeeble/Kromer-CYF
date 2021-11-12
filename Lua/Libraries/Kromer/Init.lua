@@ -230,6 +230,22 @@ function error(msg,chunk)
      __e(msg,chunk)
 end
 
+-- Statuses --
+Kromer_DefinedStatuses = {}
+function DefineStatus(name,color,linked_action)
+     if name == nil then error("Status has no name.",2) end
+     if color == nil then
+          KROMER_LOG("Status \""..name.."\" Has no Color!",1)
+          color = {1,1,1}
+     end
+     if linked_action == nil then KROMER_LOG("Status \""..name.."\" Has no Linked Action!",2) end
+     Kromer_DefinedStatuses[name] = {name=name,color=color,linked_action=linked_action}
+end
+
+DefineStatus("spareable",{1,1,0},"mercy")
+DefineStatus("tired",{0,180/255,1},{"Pacify","Sleep Mist"})
+DefineStatus("asleep",{0.5,0.5,0.5})
+
 require "Kromer/KrisGoPlayInTheSandboxWithYourBrother"
 TextSystem   = require "TextSystem"
 UI           = require "Kromer/UI"

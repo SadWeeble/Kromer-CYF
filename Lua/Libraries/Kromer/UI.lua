@@ -475,8 +475,8 @@ UI.Update = function()
                                    local avgcolor = {0,0,0}
 
                                    local statuslerp = map(1,#enemies[i].name,1,#enemies[i].statuses,char)
-                                   local col1 = enemies[i].statuses[math.floor(statuslerp)][2]
-                                   local col2 = enemies[i].statuses[math.ceil(statuslerp)][2]
+                                   local col1 = enemies[i].statuses[math.floor(statuslerp)][color]
+                                   local col2 = enemies[i].statuses[math.ceil(statuslerp)][color]
                                    local mix = statuslerp % 1
 
                                    avgcolor[1] = lerp(col1[1],col2[1],mix)

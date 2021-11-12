@@ -79,6 +79,7 @@ function CreateBlankEnvironment(envtype)
           Kromer_DebugLevel = _G.Kromer_DebugLevel,
           Kromer_LoadFile = _G.Kromer_LoadFile,
           Kromer_FindSprite = _G.Kromer_FindSprite,
+          Kromer_DefinedStatuses = _G.Kromer_DefinedStatuses,
           KROMER_LOG = _G.KROMER_LOG,
           --Kromer_State = _G.Kromer_State,
           GetModName = _G.GetModName,
@@ -87,6 +88,7 @@ function CreateBlankEnvironment(envtype)
 
      if envtype == "m" or envtype == "h" then
           t.Encounter = _G
+          t.DefineStatus = _G.DefineStatus
           t.SetAnimation = function(animationname)
 
                local newanim = t.HandleAnimationChange(t.currentanimation,animationname)

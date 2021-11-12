@@ -50,14 +50,28 @@ function Update()
      __u()
 end
 
-function AddStatus(sname,scolor)
-     table.insert(statuses,{sname,scolor})
+function AddStatus(sname)
+     if Kromer_DefinedStatuses[sname] ~= nil then
+          statuses[#statuses+1] = Kromer_DefinedStatuses[sname]
+     else
+          KROMER_LOG("STATUS \""..sname.."\" DOES NOT EXIST!",1)
+     end
 end
 
 function RemoveStatus(sname)
      for i = 1, #statuses do
-          if statuses[i] == "sname" then
+          if statuses[i][name] ~= nil then
                table.remove(statuses,i)
+               return true
+          end
+     end
+     KROMER_LOG("Entity "..name.." Attempted to Remove Nonexistent Status.",2)
+     return false
+end
+
+function GetStatus(sname)
+     for i = 1, #statuses do
+          if statuses[i][name] == sname then
                return true
           end
      end

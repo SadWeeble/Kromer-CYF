@@ -37,13 +37,12 @@ possible_attacks = {"bullettest_bouncy", "bullettest_chaserorb", "bullettest_tou
 -- Starting / Ending functions --
 
 function EncounterStarting()
-     enemies[1].AddStatus("spareable",{1,1,0})
-     enemies[2].AddStatus("tired",{0,180/255,1})
-     enemies[3].AddStatus("spareable",{1,1,0})
-     enemies[3].AddStatus("tired",{0,180/255,1})
-     enemies[4].AddStatus("spareable",{1,1,0})
-     enemies[4].AddStatus("tired",{0,180/255,1})
-     enemies[4].AddStatus("asleep",{0.5,0.5,0.5})
+     enemies[2].AddStatus("spareable")
+     enemies[3].AddStatus("tired")
+     enemies[3].AddStatus("spareable")
+     enemies[4].AddStatus("spareable")
+     enemies[4].AddStatus("tired")
+     enemies[4].AddStatus("asleep")
 end
 
 function IntroEnding()
