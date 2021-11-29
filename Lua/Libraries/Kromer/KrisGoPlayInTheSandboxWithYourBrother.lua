@@ -86,9 +86,15 @@ function CreateBlankEnvironment(envtype)
           State = _G.State,
      }
 
+     t.__envtype = envtype
+
      if envtype == "m" or envtype == "h" then
           t.Encounter = _G
           t.DefineStatus = _G.DefineStatus
+          t.BattleDialogue = _G.BattleDialogue
+          t.BattleDialog = _G.BattleDialog
+          t.ParallelDialogue = _G.ParallelDialogue
+          t.CreateDamageNumber = _G.UI.CreateDamageNumber
           t.SetAnimation = function(animationname)
 
                local newanim = t.HandleAnimationChange(t.currentanimation,animationname)
@@ -123,13 +129,13 @@ function CreateBlankEnvironment(envtype)
                          --anim[1][#anim[1]+1] = folder[i]:gsub(".png","")
                          anim[1][#anim[1]+1] = i-1
                     end
+                    if t.sprite.loopmode ~= "LOOP" then anim[1][#anim[1]+1] = #folder-1 end
                end
 
                t.sprite.SetAnimation(anim[1], anim[2], Kromer_FindDir("Sprites/"..(envtype == "m" and "Enemies" or envtype == "h" and "Heroes").."/"..t.__ID.."/"..refer..t.sprite["addition"]):gsub("Sprites/","",1))
                t.currentanimation = animationname
           end
           t.StopAnimation = function()
-
                t.sprite.StopAnimation()
 
                if t.sprite["nextanimation"] ~= false then t.SetAnimation(t.sprite["nextanimation"]) end
@@ -170,7 +176,9 @@ function CreateBlankEnvironment(envtype)
                          pma[i] = i
                     end
                end
-               t.commands[#t.commands+1] = {name = name, description = desc, tpcost = tp, partymembersrequired = pmr, partymembersaccessible = pma}
+               local com = {name = name, description = desc, tpcost = tp, partymembersrequired = pmr, partymembersaccessible = pma}
+               t.commands[#t.commands+1] = com
+               t.commands[name] = com
           end
      elseif envtype == "h" then -- Hero Entity
           t.spells = {}
@@ -199,7 +207,9 @@ function CreateBlankEnvironment(envtype)
                     end
                     pmr = {}
                end
-               t.spells[#t.spells+1] = {name = name, description = desc, tpcost = tp, targettype = targettype, partymembersrequired = pmr}
+               local spell = {name = name, description = desc, tpcost = tp, targettype = targettype, partymembersrequired = pmr}
+               t.spells[#t.spells+1] = spell
+               t.spells[name] = spell
           end
      end
 
@@ -267,6 +277,7 @@ function AddEnemy(enemyname, position, index)
      index = index or #enemies+1
 
      environment.__ID = enemyname
+     environment.__INDEX = index
 
      -- Load the enemy's actual file.
      local enemyfile = Kromer_LoadFile("Lua/Monsters/"..enemyname..".lua","t",environment)
@@ -299,6 +310,7 @@ function AddHero(heroname, position, index)
      index = index or #heroes+1
 
      environment.__ID = heroname
+     environment.__INDEX = index
 
      -- Load the hero's actual file.
      local herofile = Kromer_LoadFile("Lua/Heroes/"..heroname..".lua","t",environment)

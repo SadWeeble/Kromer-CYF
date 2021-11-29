@@ -41,18 +41,18 @@ AddSpell("Suselle", "Hoochi\nMamma!", 100, "AllHero", {"susie"})
      -- onselect  - If supplied, this animation will play when the hero selects the supplied action.
 
 animations = {
-     Intro          = { "Auto",    1/15,     { loopmode = "ONESHOT", next = "Idle", offset = {-5.5,6.5}, addition = ((sideb and "/SideB/") or "") } },
+     StartBattle    = { "Auto",    1/15,     { loopmode = "ONESHOT", next = "Idle", offset = {-5.5,6.5}, addition = ((sideb and "/SideB/") or "") } },
      Idle           = { "Auto",    1/6,      { offset = {-2,3}, addition = ((sideb and "/SideB/") or "") } },
      AttackReady    = { "Auto",    1,        { next = "Attack", offset = {-0.5,3}, onselect = "fight" } },
      Attack         = { "Auto",    1/15,     { loopmode = "ONESHOT", next = "Idle", offset = {0,3} } },
      ActReady       = { "Auto",    1/6,      { next = "Act", offset = {10.5,3}, onselect = "act" } },
-     Act            = { "Auto",    1/15,     { loopmode = "ONESHOT", next = "Idle", offset = {10.5,3} } },
+     Act            = { "Auto",    1/15,     { loopmode = "ONESHOT", next = "Idle", immediate = true, offset = {10.5,3} } },
      ItemReady      = { "Auto",    1/6,      { next = "Item", offset = {-0.5,3}, onselect = "item" } },
-     Item           = { "Auto",    1/15,     { loopmode = "ONESHOT", next = "Idle", offset = {-1.5,3} } },
+     Item           = { "Auto",    1/15,     { loopmode = "ONESHOT", next = "Idle", immediate = true, offset = {-1.5,3} } },
      SpellReady     = { "Auto",    1/6,      { next = "Spell", offset = {-0.5,3}, onselect = "magic" } },
-     Spell          = { "Auto",    1/15,     { loopmode = "ONESHOT", next = "Idle", offset = {2.5,3} } },
+     Spell          = { "Auto",    1/15,     { loopmode = "ONESHOT", next = "Idle", immediate = true, offset = {2.5,3} } },
      --MercyReady     = { "Auto",    1/6,      { next = "Mercy", offset = {10.5,3}, refer = "ActReady", onselect = "mercy" }, },
-     Mercy          = { "Auto",    1/15,     { loopmode = "ONESHOT", next = "Idle", offset = {2.5,3}, refer = "Spell", immediate = true } },
+     Mercy          = { "Auto",    1/15,     { loopmode = "ONESHOT", next = "Idle", immediate = true, offset = {2.5,3}, refer = "Spell", immediate = true } },
      Defend         = { "Auto",    1/15,     { loopmode = "ONESHOT", next = "Idle", offset = {0.5,3}, addition = ((sideb and "/SideB/") or ""), onselect = "defend" } },
      Hurt           = { "Auto",    1,        { next = "Idle", offset = {0.5,3}, addition = ((sideb and "/SideB/") or "") } },
      Down           = { "Auto",    1,        { offset = {0,0} } },

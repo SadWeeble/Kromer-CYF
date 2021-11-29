@@ -1,13 +1,13 @@
 -- A basic Hero Entity you can copy and modify for your own creations.
 
-sprite = "Idle/0"
-name = "Susie"
-emo = false
-serious = false
-unarmed = false
-hp = 110
-attack = 14
-defense = 2
+sprite   = "Idle/0"
+name     = "Susie"
+emo      = false
+serious  = false
+unarmed  = false
+hp       = 110
+attack   = 14
+defense  = 2
 immortal = false
 
 dialogbubble = "Automatic"                             -- Chapter 2's automatic dialogue bubble, very similar to CYF's
@@ -59,13 +59,13 @@ animations = {
      AttackReady    = { "Auto",    1,        { next = "Attack", offset = {10,11}, addition = GetAddition, onselect = "fight" } },
      Attack         = { "Auto",    1/15,     { loopmode = "ONESHOT", next = "Idle", offset = {12,11}, addition = GetAddition } },
      ActReady       = { "Auto",    1/6,      { next = "Act", offset = {14,11}, addition = GetAddition, onselect = "act" } },
-     Act            = { "Auto",    1/15,     { loopmode = "ONESHOT", next = "Idle", offset = {14,11}, addition = GetAddition } },
+     Act            = { "Auto",    1/15,     { loopmode = "ONESHOT", next = "Idle", immediate = true, offset = {14,11}, addition = GetAddition } },
      ItemReady      = { "Auto",    1/6,      { next = "Item", offset = {-9.5,0}, addition = GetAddition, onselect = "item" } },
-     Item           = { "Auto",    1/15,     { loopmode = "ONESHOT", next = "Idle", offset = {-9.5,0}, addition = GetAddition } },
+     Item           = { "Auto",    1/15,     { loopmode = "ONESHOT", next = "Idle", immediate = true, offset = {-9.5,0}, addition = GetAddition } },
      SpellReady     = { "Auto",    1/6,      { next = "Spell", offset = {4,5.5}, addition = GetAddition, onselect = "magic" } },
-     Spell          = { "Auto",    1/15,     { loopmode = "ONESHOT", next = "Idle", offset = {4,13}, addition = GetAddition, immediate = true } },
+     Spell          = { "Auto",    1/15,     { loopmode = "ONESHOT", next = "Idle", immediate = true, offset = {4,13}, addition = GetAddition, immediate = true } },
      --MercyReady     = { "Auto",    1/6,      { next = "Mercy", offset = {14,11}, addition = GetAddition, refer = "ActReady", onselect = "mercy" } },
-     Mercy          = { "Auto",    1/15,     { loopmode = "ONESHOT", next = "Idle", offset = {4,13}, addition = GetAddition, refer = "Spell", immediate = true } },
+     Mercy          = { "Auto",    1/15,     { loopmode = "ONESHOT", next = "Idle", immediate = true, offset = {4,13}, addition = GetAddition, refer = "Spell", immediate = true } },
      Defend         = { "Auto",    1/15,     { loopmode = "ONESHOT", next = "Idle", offset = {-7,12}, addition = GetAddition, onselect = "defend" } },
      Hurt           = { "Auto",    1,        { next = "Idle", offset = {-10,0}, addition = GetAddition } },
      Down           = { "Auto",    1,        { offset = {-10,0}, addition = GetAddition } },

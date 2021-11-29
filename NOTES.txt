@@ -18,3 +18,6 @@ The magnificent Poseur animation
 KyYay's interpolation library
 
 Thanks to Dimitri and Ally for helping with memory leak issues!
+
+The function BattleDialog / BattleDialogue ensures that any entity dialogue occurs after the encounter text
+The function ParallelDialogue allows the encounter text to write alongside entity text.

@@ -259,11 +259,13 @@ function self.Update()
 	for i in pairs(moving) do
 		local m = moving[i]
 		if m.type ~= "number" then
+			m.obj["interp_finish"] = false
 			if m.tb then
 				local newx,newy = self[m.mode](m.sx,m.tx,(Time.time-m.ct)/m.t),self[m.mode](m.sy,m.ty,(Time.time-m.ct)/m.t)
 				m.obj.Move(newx-m.lx,newy-m.ly)
 				m.lx,m.ly = newx,newy
 				if (Time.time-m.ct) >= m.t then
+					m.obj["interp_finish"] = true
 					moving[i] = nil
 				end
 			else
@@ -272,6 +274,7 @@ function self.Update()
 				m.obj.Move(newx-m.lx,newy-m.ly)
 				m.lx,m.ly = newx,newy
 				if m.ct >= m.t then
+					m.obj["interp_finish"] = true
 					moving[i] = nil
 				end
 			end

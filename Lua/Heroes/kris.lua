@@ -1,10 +1,10 @@
 -- A basic Hero Entity you can copy and modify for your own creations.
 
-sprite = "Idle/0"
-name = "Kris"
-hp = 90
-attack = 10
-defense = 2
+sprite   = "Idle/0"
+name     = "Kris"
+hp       = 90
+attack   = 10
+defense  = 2
 immortal = false
 
 dialogbubble = "Automatic"                   -- Chapter 2's automatic dialogue bubble, very similar to CYF's
@@ -38,11 +38,11 @@ animations = {
      AttackReady    = { {0},                                     1,        { next = "Attack", offset = {18.5,1}, onselect = "fight" } },
      Attack         = { {0, 1, 2, 3, 4, 5, 6},                   1/15,     { loopmode = "ONESHOT", next = "Idle", offset = {18.5,1} } },
      ActReady       = { {0, 1},                                  1/6,      { next = "Act", offset = {18.5,4}, onselect = "act" } },
-     Act            = { {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10},      1/15,     { loopmode = "ONESHOT", next = "Idle", offset = {18.5,4} } },
+     Act            = { {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10},      1/15,     { loopmode = "ONESHOT", next = "Idle", immediate = true, offset = {18.5,4} } },
      ItemReady      = { {0},                                     1,        { next = "Item", offset = {12,4}, onselect = "item" } },
-     Item           = { {0, 1, 2, 3, 4, 5, 6},                   1/15,     { loopmode = "ONESHOT", next = "Idle", offset = {12,4} } },
+     Item           = { {0, 1, 2, 3, 4, 5, 6},                   1/15,     { loopmode = "ONESHOT", next = "Idle", immediate = true, offset = {12,4} } },
      --MercyReady     = { {0, 1},                                  1/6,      { next = "Mercy", offset = {18.5,4}, refer = "ActReady", onselect = "mercy" } },
-     Mercy          = { {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10},      1/15,     { loopmode = "ONESHOT", next = "Idle", offset = {18.5,4}, refer = "Act" } },
+     Mercy          = { {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10},      1/15,     { loopmode = "ONESHOT", next = "Idle", immediate = true, offset = {18.5,4}, refer = "Act" } },
      Defend         = { {0, 1, 2, 3, 4, 5},                      1/15,     { loopmode = "ONESHOT", next = "Idle", offset = {5,3}, onselect = "defend" } },
      Hurt           = { {0},                                     1,        { next = "Idle", offset = {18,4} } },
      Down           = { {0},                                     1,        { offset = {6,3} } },

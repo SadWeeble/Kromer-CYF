@@ -77,6 +77,9 @@ self.formatstring = function(object,string,type)
           string = self.ParseCustomTextTag(object, string, "highlight", "[font:vertgradienttrim][color:ARG_1]")
           string = self.ParseCustomTextTag(object, string, "endhighlight", "[font:uidialog2][color:ffffff]")
 
+          --string = self.ParseCustomTextTag(object, string, "herofunc")
+          --string = self.ParseCustomTextTag(object, string, "enemyfunc")
+
           -- Face, text, position, start position (x and y)
           string = self.ParseCustomTextTag(object, string, "smallface", function(args,object)
                local icon = CreateSprite(args[1],"UpperUI")
@@ -170,7 +173,7 @@ self.Update = function()
      local pass = true
      if Input.Confirm == 1 then
           for _,t in pairs(self.EntityText) do
-               DEBUG(_)
+               --DEBUG(_)
                if not t["text"].lineComplete then
                     pass = false
                     break
@@ -273,7 +276,7 @@ self.CreateText = function(text,_type,x,y,layer)
                b = nil
           end
 
-          t = nil
+          t.isactive = false
      end
 
      t.CleanUpChildren = function()

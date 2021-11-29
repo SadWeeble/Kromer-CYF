@@ -17,7 +17,7 @@ _set("statuses", "Entity "..__ID..".lua is missing STATUSES (table)!", {})
 
 _set("HandleAnimationChange", "Entity "..__ID..".lua is missing HANDLEANIMATIONCHANGE (function)",    function() end)
 
-currentdialogue = {}
+currentdialogue = nil
 currentanimation = "NONE"
 
 local __u = Update or function() end
@@ -32,7 +32,9 @@ sprite["glow"].alpha = 0
 sprite["shaketimer"] = 0
 sprite["shakeoffset"] = {0,0}
 
-function Update()
+function Update(ind)
+
+     __INDEX = ind
 
      if sprite["shaketimer"] >= 0 then
           sprite["shakeoffset"][1] = -(sprite["shaketimer"] ^ 1.5)/2
@@ -53,20 +55,58 @@ end
 function AddStatus(sname)
      if Kromer_DefinedStatuses[sname] ~= nil then
           statuses[#statuses+1] = Kromer_DefinedStatuses[sname]
+          if __envtype ~= "m" then return end
+          for i,v in ipairs(Kromer_DefinedStatuses[sname]["linked_action"]) do
+               Encounter.all_linked_status_actions[v] = true -- It took me an embarrasingly long amount of time to remember I had implemented the whole "Encounter." thing.
+          end
+          KROMER_LOG("Entity "..name.." given status "..sname,3)
      else
           KROMER_LOG("STATUS \""..sname.."\" DOES NOT EXIST!",1)
      end
 end
 
 function RemoveStatus(sname)
-     for i = 1, #statuses do
-          if statuses[i][name] ~= nil then
+     local success = false
+     for i = #statuses, 1, -1 do
+          if statuses[i]["name"] == sname then
+               KROMER_LOG("Entity "..name.." removed status "..statuses[i]["name"],3)
                table.remove(statuses,i)
-               return true
+               success = true
           end
      end
-     KROMER_LOG("Entity "..name.." Attempted to Remove Nonexistent Status.",2)
-     return false
+
+     if success == false then
+          KROMER_LOG("Entity "..name.." Attempted to Remove Nonexistent Status.",2)
+          return false
+     else
+          local unrelated_linkedactions = {}
+          for ene = 1, #Encounter.enemies do
+               for stat = 1, #Encounter.enemies[ene].statuses do
+                    for la,v in ipairs(Encounter.enemies[ene].statuses[stat].linked_action) do
+                         unrelated_linkedactions[v] = true
+                    end
+                    if Encounter.enemies[ene].statuses[stat].name == sname then
+                         return true
+                    end
+               end
+          end
+
+          for la,v in ipairs(Kromer_DefinedStatuses[sname].linked_action) do
+               success = true
+               for i,_ in pairs(unrelated_linkedactions) do
+                    if v == i then
+                         success = false
+                         break
+                    end
+               end
+
+               if success then Encounter.all_linked_status_actions[v] = nil end
+
+          end
+
+          KROMER_LOG("Final "..sname.." status removed.",3)
+          return true
+     end
 end
 
 function GetStatus(sname)
@@ -80,6 +120,18 @@ end
 
 function Shake(length)
      sprite["shaketimer"] = length or 10
+end
+
+function Move(x,y)
+     sprite.Move(x,y)
+end
+
+function MoveTo(x,y)
+     sprite.MoveTo(x,y)
+end
+
+function MoveToAbs(x,y)
+     sprite.MoveAbs(x,y)
 end
 
 _set = nil

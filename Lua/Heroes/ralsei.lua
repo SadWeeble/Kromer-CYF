@@ -1,11 +1,11 @@
 -- A basic Hero Entity you can copy and modify for your own creations.
 
-sprite = "Idle/0"
-name = "Ralsei"
-hooded = false      -- Set to true
-hp = 70
-attack = 8
-defense = 2
+sprite   = "Idle/0"
+name     = "Ralsei"
+hooded   = false      -- Set to true
+hp       = 70
+attack   = 8
+defense  = 2
 immortal = false
 
 dialogbubble = "automatic"                             -- Chapter 2's automatic dialogue bubble, very similar to CYF's
@@ -44,13 +44,13 @@ animations = {
      AttackReady    = { "Auto",    1,        { next = "Attack", offset = {12,3}, addition = ((hooded and "/Hooded/") or ""), onselect = "fight" } },
      Attack         = { "Auto",    1/15,     { loopmode = "ONESHOT", next = "Idle", offset = {12,3}, addition = ((hooded and "/Hooded/") or "") } },
      ActReady       = { "Auto",    1/6,      { next = "Act", offset = {16,3}, addition = ((hooded and "/Hooded/") or ""), onselect = "act" } },
-     Act            = { "Auto",    1/15,     { loopmode = "ONESHOT", next = "Idle", offset = {16,3}, addition = ((hooded and "/Hooded/") or "") } },
+     Act            = { "Auto",    1/15,     { loopmode = "ONESHOT", next = "Idle", immediate = true, offset = {16,3}, addition = ((hooded and "/Hooded/") or "") } },
      ItemReady      = { "Auto",    1,        { next = "Item", offset = {13.5,7}, addition = ((hooded and "/Hooded/") or ""), onselect = "item" } },
-     Item           = { "Auto",    1/15,     { loopmode = "ONESHOT", next = "Idle", offset = {13.5,7}, addition = ((hooded and "/Hooded/") or "") } },
+     Item           = { "Auto",    1/15,     { loopmode = "ONESHOT", next = "Idle", immediate = true, offset = {13.5,7}, addition = ((hooded and "/Hooded/") or "") } },
      SpellReady     = { "Auto",    1/6,      { next = "Spell", offset = {11.5,3}, addition = ((hooded and "/Hooded/") or ""), onselect = "magic" } },
-     Spell          = { "Auto",    1/15,     { loopmode = "ONESHOT", next = "Idle", offset = {11.5,3}, addition = ((hooded and "/Hooded/") or "") } },
+     Spell          = { "Auto",    1/15,     { loopmode = "ONESHOT", next = "Idle", immediate = true, offset = {11.5,3}, addition = ((hooded and "/Hooded/") or "") } },
      --MercyReady     = { "Auto",    1/6,      { next = "Mercy", offset = {16,3}, addition = ((hooded and "/Hooded/") or ""), refer = "ActReady", onselect = "mercy" } },
-     Mercy          = { "Auto",    1/15,     { loopmode = "ONESHOT", next = "Idle", offset = {16,3}, addition = ((hooded and "/Hooded/") or ""), refer = "Spell" } },
+     Mercy          = { "Auto",    1/15,     { loopmode = "ONESHOT", next = "Idle", immediate = true, offset = {16,3}, addition = ((hooded and "/Hooded/") or ""), refer = "Spell" } },
      Defend         = { "Auto",    1/15,     { loopmode = "ONESHOT", next = "Idle", offset = {16,3}, addition = ((hooded and "/Hooded/") or ""), onselect = "defend" } },
      Hurt           = { "Auto",    1,        { next = "Idle", offset = {15,0}, addition = ((hooded and "/Hooded/") or "") } },
      Down           = { "Auto",    1,        { offset = {20,0}, addition = ((hooded and "/Hooded/") or "") } },

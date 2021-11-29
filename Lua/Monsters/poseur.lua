@@ -1,11 +1,11 @@
 -- A basic Enemy Entity you can copy and modify for your own creations.
 comments = { "Smells like the work of an enemy stand.[w:5]\nAnd shady deals.", "Poseur is posing like his money depends on it.", "Poseur's limbs shouldn't be contorting in this way." }
 randomdialogue = {
-    { "Check it out.",                                 "Please"                           },
-    { "Check it out again.",                           "...",         "For real now"      },
+    { "Check it [[out\nat my store!]",                  "Please"                           },
+    { "Check it out\nagain.",                           "...",         "For real now"      },
     { "I'll show you [[THE LIGHT].",                   "Trust me."                        },
-    { "Keep [[DYING]!",                                "[KROMER]!",   "I SAID [[KROMER]!" },
-      "It's [[Everyone's Favorite Marvel Character]."
+    { "Keep [[track of\nyour chickens]!",                                                  },
+      "It's [[Everyone's\nFavorite Marvel\nCharacter]."
 }
 
 -- Act name, act description, TP cost, party members required, party members viewable from
@@ -13,7 +13,6 @@ randomdialogue = {
 AddAct("Talk",  "", 0,  {})
 AddAct("Mock",  "", 10, { "susie" })
 AddAct("Dance", "", 30, { "ralsei" })
-AddAct("Test",  "", 0,  {"susie","noelle","ralsei"})
 
 sprite   = "Idle/0"
 name     = "Poseur"
@@ -24,14 +23,17 @@ immortal = false
 
 dialogbubble = "automatic"                        -- Chapter 2's automatic dialogue bubble, very similar to CYF's
 
-targetables = "heroes"                            -- "Hero", "Enemy", or "Entity".
-targettype  = 1                                   -- If a number, at most that many targets based off of targetables. If a string / table of strings, target those entities.
-statuses    = {}
-mercy       = 0                                   -- From 0 to 1, the value of the mercy bar.
-cancheck    = true                                -- Inserts the default CHECK behavior into the commands
-canspare    = true                                -- Can this enemy be spared?
+targetables  = "heroes"                            -- "Hero", "Enemy", or "Entity".
+targettype   = 1                                   -- If a number, at most that many targets based off of targetables. If a string / table of strings, target those entities.
+statuses     = {}
+mercy        = 0                                   -- From 0 to 1, the value of the mercy bar.
+cancheck     = true                                -- Inserts the default CHECK behavior into the commands
+canspare     = true                                -- Can this enemy be spared?
+checkmessage = "This poor mannequin has\rbeen subject to all sorts\rof cruel tests."
 
-
+talks = 0
+mocks = 0
+dance = 0
 
 -- The animations table --
 -- KROMER searches "Enemies/<enemy name>/<animation name or refer><addition>/<frame name>"
@@ -110,6 +112,31 @@ function OnSpare(hero) end
 -- Triggered when a Hero uses an Act on this enemy.
 -- You don't need an all-caps version of the act commands here.
 function HandleCustomCommand(hero, command)
+     if command == "Standard" then
+          if hero == "noelle" then
+               AddMercy(0.15)
+               BattleDialogue({"Noelle compliments Poseur's\rforeboding posture."})
+          elseif hero == "ralsei" then
+               AddMercy(0.15)
+               BattleDialogue({"Ralsei offers tips on being\rcute and/or adorable to Poseur."})
+          elseif hero == "susie" then
+               if not GetStatus("Tired") then AddStatus("Tired") end
+               BattleDialogue({"Susie cracks her neck so loudly,\rPoseur's bones tremble in fear.","Poseur became [highlight:00B4FF]TIRED[endhighlight]!"})
+          end
+     end
+
+     if command == "Talk" then
+          talks = talks + 1
+          if talks == 1 then
+               AddMercy(0.50)
+               BattleDialogue({"You try to strike up a\rconversation with Poseur.", "He seems a little out of it."})
+               currentdialogue = "[[CONGRATS! YOUR ARE OUR 100TH]"
+          elseif talks == 2 then
+               AddMercy(0.50)
+               BattleDialogue({"You mention bullets.", "Poseur seems to remember something."})
+               currentdialogue = "...[[LET'S GET MOVING!!]"
+          end
+     end
 end
 
 -- Function called whenever this entity's animation is changed.

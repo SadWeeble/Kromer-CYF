@@ -105,6 +105,8 @@ TP.Init = function()
 end
 
 TP.Update = function()
+     TP.Frame.x = 50 + (UI.baseui.y-240)/3
+
      TP.Float.y = -TP.Background.height/2
      TP.Sink.y = -TP.Background.height/2
 

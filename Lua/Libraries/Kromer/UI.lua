@@ -19,7 +19,8 @@ function ShowBackground()
      UI.backgroundvisible = true
 end
 
-local baseui = CreateSprite("baseui","LowerUI")
+UI.baseui = CreateSprite("baseui","LowerUI")
+UI.baseui.y = 0
 
 -- Ignore my lazy workaround, it shouldn't cause problems... right?
 UI.EntitySelectCover = CreateSprite("px","Arena")
@@ -63,11 +64,74 @@ UI.RefreshHeroUI = function()
      end
      for i = 1, #heroes do
 
+          local s = CreateSprite("px","LowerUI")
+          s.Scale(UI.HeroUIWidth,35)
+          s.color = {0,0,0}
+          s.SetParent(UI.baseui)
+          s["i"] = i
+
+          local s_mask = CreateSprite("px","LowerUI")
+          s_mask.Scale(UI.HeroUIWidth,35)
+          s_mask.color = {1,0,0}
+          s_mask.SetParent(s)
+          s_mask.Mask("stencil")
+          s["mask"] = s_mask
+
+          local s_icon = CreateSprite(Kromer_FindSprite("Heroes/"..heroes[i].__ID.."/UI/icon"), "LowerUI")
+          s_icon.SetParent(s)
+          s_icon.xpivot = 0
+          s_icon.x = -UI.HeroUIWidth/2 + 12
+          s_icon.y = -4
+          s["icon"] = s_icon
+
+          local s_name = CreateText({"[font:PlayerNameFont][charspacing:"..(2-(#heroes[i].name/3)).."][instant]"..heroes[i].name:upper()},{320,240},640,"LowerUI",-1)
+          s_name.HideBubble()
+          s_name.progressmode = "none"
+          s_name.SetParent(s)
+          s_name.MoveTo(-UI.HeroUIWidth/2 + 51, s_name.y-s_name.GetTextHeight()/2-3)
+          s["name"] = s_name
+
+          local s_hptext = CreateSprite(Kromer_FindSprite("UI/HPText"),"LowerUI")
+          s_hptext.SetParent(s)
+          s_hptext.MoveTo(-UI.HeroUIWidth/2 + 116, -7)
+          s["hptext"] = s_hptext
+
+          local s_hp = CreateText({"[font:HPFont][instant]"..heroes[i].hp.."/ "..heroes[i].maxhp},{320,240},640,"LowerUI",-1)
+          s_hp.HideBubble()
+          s_hp.progressmode = "none"
+          s_hp.SetParent(s)
+          s_hp.MoveTo(99-s_hp.GetTextWidth(),0)
+          s["hp"] = s_hp
+
+          local s_hpbar = {}
+          s_hpbar.maxvalue = heroes[i].maxhp
+          s_hpbar.value = heroes[i].hp
+          s_hpbar.emptycolor = {0.5,0,0}
+          s_hpbar.filledcolor = heroes[i].herocolor
+
+          s_hpbar.empty = CreateSprite("px","LowerUI")
+          s_hpbar.empty.SetParent(s)
+          s_hpbar.empty.color = s_hpbar.emptycolor
+          s_hpbar.empty.xpivot = 0
+          s_hpbar.empty.Scale(76,9)
+          s_hpbar.empty.MoveTo(-UI.HeroUIWidth/2 + 128, -7)
+
+          s_hpbar.fill = CreateSprite("px","LowerUI")
+          s_hpbar.fill.SetParent(s)
+          s_hpbar.fill.color = s_hpbar.filledcolor
+          s_hpbar.fill.xpivot = 0
+          s_hpbar.fill.Scale(76*(s_hpbar.value/s_hpbar.maxvalue),9)
+          s_hpbar.fill.MoveTo(-UI.HeroUIWidth/2 + 128, -7)
+
+          s["hpbar"] = s_hpbar
+
+
           local options = {}
           local o = {"fight","act","item","mercy","defend"}
           for j = 1, #o do
                if o[j] == "act" and heroes[i].magicuser then o[j] = "magic" end
                local a = CreateSprite(Kromer_FindSprite("UI/Buttons/"..o[j]),"LowerUI")
+               a.SetParent(s_mask)
                a["select"] = CreateSprite(Kromer_FindSprite("UI/Buttons/"..o[j].."S"))
                --a.SetParent(s)
                a["select"].SetParent(a)
@@ -78,67 +142,14 @@ UI.RefreshHeroUI = function()
                table.insert(options,a)
           end
 
-          local s = CreateSprite("px","LowerUI")
-          s.Scale(UI.HeroUIWidth,35)
-          s.color = {0,0,0}
-          s["i"] = i
-
-          local icon = CreateSprite(Kromer_FindSprite("Heroes/"..heroes[i].__ID.."/UI/icon"), "LowerUI")
-          icon.SetParent(s)
-          icon.xpivot = 0
-          icon.x = -UI.HeroUIWidth/2 + 12
-          icon.y = -4
-          s["icon"] = icon
-
-          local name = CreateText({"[font:PlayerNameFont][charspacing:"..(2-(#heroes[i].name/3)).."][instant]"..heroes[i].name:upper()},{320,240},640,"LowerUI",-1)
-          name.HideBubble()
-          name.progressmode = "none"
-          name.SetParent(s)
-          name.MoveTo(-UI.HeroUIWidth/2 + 51, name.y-name.GetTextHeight()/2-3)
-          s["name"] = name
-
-          local hptext = CreateSprite(Kromer_FindSprite("UI/HPText"),"LowerUI")
-          hptext.SetParent(s)
-          hptext.MoveTo(-UI.HeroUIWidth/2 + 116, -7)
-          s["hptext"] = hptext
-
-          local hp = CreateText({"[font:HPFont][instant]"..heroes[i].hp.."/ "..heroes[i].maxhp},{320,240},640,"LowerUI",-1)
-          hp.HideBubble()
-          hp.progressmode = "none"
-          hp.SetParent(s)
-          hp.MoveTo(99-hp.GetTextWidth(),0)
-          s["hp"] = hp
-
-          local hpbar = {}
-          hpbar.maxvalue = heroes[i].maxhp
-          hpbar.value = heroes[i].hp
-          hpbar.emptycolor = {0.5,0,0}
-          hpbar.filledcolor = heroes[i].herocolor
-
-          hpbar.empty = CreateSprite("px","LowerUI")
-          hpbar.empty.SetParent(s)
-          hpbar.empty.color = hpbar.emptycolor
-          hpbar.empty.xpivot = 0
-          hpbar.empty.Scale(76,9)
-          hpbar.empty.MoveTo(-UI.HeroUIWidth/2 + 128, -7)
-
-          hpbar.fill = CreateSprite("px","LowerUI")
-          hpbar.fill.SetParent(s)
-          hpbar.fill.color = hpbar.filledcolor
-          hpbar.fill.xpivot = 0
-          hpbar.fill.Scale(76*(hpbar.value/hpbar.maxvalue),9)
-          hpbar.fill.MoveTo(-UI.HeroUIWidth/2 + 128, -7)
-
-          s["hpbar"] = hpbar
-
           s["options"] = options
 
-          s.MoveTo(lerp(0,640,(i-0.5)/math.min(#heroes,3)),135.5)
+          s.MoveTo(lerp(0,640,(i-0.5)/math.min(#heroes,3)),-50)
           s["select"] = false
 
           s["offset"] = 0
           s["x"] = s.x
-          s["y"] = 135.5
+          s["y"] = -50
           s["oldpos"] = {s["x"],s["y"]}
           s["based"] = true
 
@@ -183,6 +194,7 @@ herohighlight.bottom["yoff"] = -3
 table.insert(herohighlight.parts,herohighlight.bottom)
 
 local heroparticles    = {}     -- The "particles" that emit in the current hero's information box
+local spellpass        = nil
 
 uimenurefs             = {}     -- A table that contains information that Kromer needs to properly display and navigate menus
 
@@ -206,13 +218,10 @@ local EnemyNameWidth   = 0
 
 local damagenumbers    = {}     -- The several hundred numbers that appear when Sans uses his extremely unfair attacks on you
 -- Entrance types: Entrance_Appear, Entrance_Fade, Entrance_Bounce, Entrance_SlideRight, Entrance_SlideLeft, Entrance_Unsquish
--- Exit types: Exit_Disappear, Exit_Fade, Exit_Bounce, Exit_SlideRight, Exit_SlideLeft, Exit_FlyUp
+-- Exit types: Exit_Disappear, Exit_Fade, Exit_Bounce, Exit_SlideRight, Exit_SlideLeft, Exit_FlyUp, Exit_FlyUpLinear
 
 -- Initializes various UI elements
 UI.Init = function()
-
-     HideBackground()
-
      UI_Soul = CreateSprite(Kromer_FindSprite("ut-heart"),"HighestUI")
      UI_Soul.SetParent(UI.EntitySelectCover)
      UI_Soul.MoveTo(63,87)
@@ -304,16 +313,12 @@ UI.CreateDamageNumber = function(text, position, color, entrance, exit, age)
      dmg["exit"]     = exit
      dmg["age"]      = age
      dmg["lifetime"] = 0
+     dmg["firstframe"] = true
      table.insert(damagenumbers,dmg)
 end
 
 -- Updates UI
 UI.Update = function()
-
-     if Input.Menu == 1 then
-          UI.CreateDamageNumber("[font:BattleMessage]Recruit", {320,240}, {255/255,242/255,0}, "Entrance_Unsquish", "Exit_Disappear", 2)
-     end
-
      -- Update Background
      if UI.backgroundvisible then
           background1.MoveTo(320-(GetFrame()/2)%50,240+(GetFrame()/2)%50+10)
@@ -329,6 +334,8 @@ UI.Update = function()
           if (activehero > 0 and activehero <= math.min(#heroes,#UI.HeroUI)) and selectable then
                for i = -1, 1, 2 do
                     local p = CreateSprite("px","LowerUI",2)
+                    p.SetParent(UI.HeroUI[activehero])
+                    p.SendToBottom()
                     p["xoff"] = math.min(i,0)*2
                     p["yoff"] = -19
                     p.xpivot = UI.HeroUIWidth/4*i
@@ -356,7 +363,7 @@ UI.Update = function()
           if i == activehero and selectable then
                y = 167.5
                herohighlight.color = heroes[activehero].herocolor
-               local ys = 68.5 - (167.5 - s.y)
+               local ys = 68.5 - (167.5 - s.absy) - (UI.baseui.y-240)
                herohighlight.left.yscale = ys
                herohighlight.right.yscale = ys
           end
@@ -390,18 +397,35 @@ UI.Update = function()
                -- end
                s["oldpos"] = {s["x"], s["y"]}
                Interp.ClearObjMovement(s)
-               Interp.MoveObjTo(s,s["x"],s["y"],14,"easeout",false)
+               Interp.MoveObjTo(s,UI.baseui.x-320+s["x"],UI.baseui.y-240+s["y"],14,"easeout",false)
                --s.MoveTo(s["x"],s["y"])
+               if i == activehero then
+                    spellpass = false
+                    for k,v in pairs(all_linked_status_actions) do
+                         if heroes[i].spells[k] ~= nil and GetTP() >= heroes[i].spells[k].tpcost then
+                              spellpass = true
+                              break
+                         end
+                    end
+               end
           end
           for o = 1, #s["options"] do
-               s["options"][o].MoveTo(lerp(s.x-88,s.x+88,(o-0.5)/#s["options"])-1,135.5-1.5)
+               --s["options"][o].MoveTo(lerp(s.absx-88,s.absx+88,(o-0.5)/#s["options"])-1,math.min(s.absy,135.5-1.5))
+               s["options"][o].MoveToAbs(lerp(s.absx-88,s.absx+88,(o-0.5)/#s["options"])-1,math.min(s.absy,135.5-1.5))
                s["options"][o].alpha = 1
                if (currentaction == o and i == activehero) and (selectable) then
                     s["options"][o]["select"].color = {1,1,0,1}
                else
                     s["options"][o]["select"].color = {1,1,0,0}
                end
+
+               if selectable and activehero == i and (all_linked_status_actions[s["options"][o]["type"]] ~= nil or (s["options"][o]["type"] == "magic" and spellpass)) then
+                    local c = s["options"][o]["select"].color
+                    local fadecol = math.abs(math.sin(Time.time*2.5))
+                    s["options"][o]["select"].color = {math.max(c[1],fadecol),math.max(c[2],fadecol),fadecol,math.max(s["options"][o]["select"].alpha,fadecol)}
+               end
           end
+          s["mask"].MoveTo(0,-35)
      end
 
      -- Update Hero Highlight
@@ -409,7 +433,7 @@ UI.Update = function()
           for i = 1, #herohighlight.parts do
                local p = herohighlight.parts[i]
                p.color = heroes[activehero].herocolor
-               p.MoveTo(UI.HeroUI[activehero].x+p["xoff"],UI.HeroUI[activehero].y+p["yoff"])
+               p.MoveTo(UI.HeroUI[activehero].absx+p["xoff"],UI.HeroUI[activehero].absy+p["yoff"])
           end
      else
           for i = 1, #herohighlight.parts do
@@ -424,8 +448,8 @@ UI.Update = function()
           p["xoff"] = p["xoff"] + p["speed"]
           p["speed"] = p["speed"] + p["i"]*0.01
           p.alpha = p.alpha - 0.01
-          p.MoveTo(UI.HeroUI[p["hero"]].x+p["xoff"],UI.HeroUI[p["hero"]].y+p["yoff"])
-          p.Scale(2,math.max(30-167.5+UI.HeroUI[p["hero"]].y,0))
+          p.MoveTo(p["xoff"],p["yoff"])
+          p.Scale(2,math.max(30-167.5+UI.HeroUI[p["hero"]].absy,0))
           if p.alpha <= 0 then
                p.Remove()
                p = nil
@@ -461,10 +485,17 @@ UI.Update = function()
                end
 
                if GetCurrentState() == "ENEMYSELECT" or GetCurrentState() == "ENTITYSELECT" then
+                    local maxiconwidth = 0
+                    for i = 1, #enemies do
+                         maxiconwidth = math.max(maxiconwidth,#enemies[i].statuses*16)
+                    end
+
                     for i = 1, #enemies do
                          uimenurefs[#uimenurefs+1] = enemies[i]
                          UI_Text["text"].SetText("[font:uidialog]"..enemies[i].name)
                          local icons = ""
+                         local iconwid = 0
+                         local statusdisplaytext = ""
                          local name = ""
                          if #enemies[i].statuses == 0 then
                               name = "[color:ffffff]"..enemies[i].name
@@ -475,8 +506,8 @@ UI.Update = function()
                                    local avgcolor = {0,0,0}
 
                                    local statuslerp = map(1,#enemies[i].name,1,#enemies[i].statuses,char)
-                                   local col1 = enemies[i].statuses[math.floor(statuslerp)][color]
-                                   local col2 = enemies[i].statuses[math.ceil(statuslerp)][color]
+                                   local col1 = enemies[i].statuses[math.floor(statuslerp)]["color"]
+                                   local col2 = enemies[i].statuses[math.ceil(statuslerp)]["color"]
                                    local mix = statuslerp % 1
 
                                    avgcolor[1] = lerp(col1[1],col2[1],mix)
@@ -487,22 +518,32 @@ UI.Update = function()
                               end
 
                               local numicons = 0
-                              local iconwid = 0
+                              local highestpriority = 1
 
                               for status = 1, #enemies[i].statuses do
+                                   highestpriority = math.max(highestpriority,enemies[i].statuses[status].displaypriority)
+                                   if highestpriority == enemies[i].statuses[status].displaypriority then
+                                        statusdisplaytext = "[color:808080]( "..enemies[i].statuses[status].name.." )"
+                                   end
                                    local x = EnemyNameWidth + iconwid
                                    local y = 7-(i-1)*30
                                    numicons = numicons + 1
-                                   local s = CreateSprite("UI/Battle/Statuses/" .. enemies[i].statuses[status][1])
+                                   local s = CreateSprite("UI/Battle/Statuses/" .. enemies[i].statuses[status]["name"])
                                    local w = s.width+2
                                    s.Remove()
                                    s = nil
                                    iconwid = iconwid + w
-                                   icons = icons .. "[icon:UI/Battle/Statuses/"..enemies[i].statuses[status][1]..","..x..","..y..",EntitySelectCover]" .. string.rep("é",math.floor(w/3))
+                                   icons = icons .. "[icon:UI/Battle/Statuses/"..enemies[i].statuses[status]["name"]..","..x..","..y..",EntitySelectCover]" .. string.rep("é",math.floor(w/3))
                               end
 
+                              statusdisplaytext = string.rep("é",math.floor((maxiconwidth - iconwid)/3)+4) .. statusdisplaytext
+
                          end
-                         names = names .. name .. "[charspacing:"..EnemyNameWidth-UI_Text["text"].GetTextWidth().."]é[charspacing:default]" .. icons .. "\n"
+                         if heroes[activehero].magicuser then -- Magic hero's standard acts
+                              statusdisplaytext = "[color:"..NumberToHex(heroes[activehero].actioncolor[1]*255)..NumberToHex(heroes[activehero].actioncolor[2]*255)..NumberToHex(heroes[activehero].actioncolor[3]*255).."]"..(enemies[i].standardactname)
+                              statusdisplaytext = string.rep("é",math.floor((maxiconwidth - iconwid)/3)+4) .. statusdisplaytext
+                         end
+                         names = names .. name .. "[charspacing:"..EnemyNameWidth-UI_Text["text"].GetTextWidth().."]é[charspacing:default]" .. icons .. statusdisplaytext .. "\n"
                     end
                end
 
@@ -750,50 +791,138 @@ UI.Update = function()
 
      for i = #damagenumbers, 1, -1 do
           local dmg = damagenumbers[i]
-
-          dmg["lifetime"] = dmg["lifetime"] + Time.dt
-
           dmg["text"].color = dmg.color
-          dmg["text"].MoveTo(dmg.position[1],dmg.position[2])
 
-          local speed = 5
-          local entfac = dmg["lifetime"]/(dmg["age"]/speed)
+          if not dmg.firstframe then
+               local speed = 5
+               local entfac = dmg["lifetime"]/(dmg["age"]/speed)
 
-          if dmg.entrance == "Entrance_Fade" then
-               dmg["text"].alpha = lerp(0,dmg.color[4] or 1,entfac)
-          elseif dmg.entrance == "Entrance_SlideRight" then
-               dmg["text"].MoveTo(dmg.position[1]+math.min(0,-50*(0.1^entfac)),dmg.position[2])
-               dmg["text"].alpha = lerp(0,dmg.color[4] or 1,entfac)
-          elseif dmg.entrance == "Entrance_SlideLeft" then
-               dmg["text"].MoveTo(dmg.position[1]-math.min(0,-50*(0.1^entfac)),dmg.position[2])
-               dmg["text"].alpha = lerp(0,dmg.color[4] or 1,entfac)
-          end
+               dmg["lifetime"] = dmg["lifetime"] + Time.dt
 
-          if dmg.exit == "Exit_Fade" and dmg["lifetime"]/dmg["age"] >= 1-1/speed then
-               dmg["text"].alpha = lerp(0,dmg.color[4] or 1,speed-entfac)
-          elseif dmg.exit == "Exit_SlideRight" and dmg["lifetime"]/dmg["age"] >= 1-1/speed then
-               dmg["text"].MoveTo(dmg.position[1]+50*(0.01^(speed-entfac)),dmg.position[2])
-               dmg["text"].alpha = lerp(0,dmg.color[4] or 1,speed-entfac)
-          elseif dmg.exit == "Exit_SlideLeft" and dmg["lifetime"]/dmg["age"] >= 1-1/speed then
-               dmg["text"].MoveTo(dmg.position[1]-50*(0.01^(speed-entfac)),dmg.position[2])
-               dmg["text"].alpha = lerp(0,dmg.color[4] or 1,speed-entfac)
-          end
+               dmg["text"].MoveTo(dmg.position[1],dmg.position[2])
 
-          if dmg.entrance == "Entrance_Unsquish" then
-               dmg["text"].xscale = math.max(2,4-entfac*3)
-               dmg["text"].yscale = math.min(2,entfac*3)
-               dmg["text"].alpha = lerp(0,dmg.color[4] or 1,entfac)
 
-               local w = dmg["text"].GetTextWidth() * (dmg["text"].xscale-2)/2
-               local h = dmg["text"].GetTextHeight() * (dmg["text"].yscale-2)/2
+               if dmg.entrance == "Entrance_Fade" then
+                    dmg["text"].alpha = lerp(0,dmg.color[4] or 1,entfac)
+               elseif dmg.entrance == "Entrance_SlideRight" then
+                    dmg["text"].MoveTo(dmg.position[1]+math.min(0,-50*(0.1^entfac)),dmg.position[2])
+                    dmg["text"].alpha = lerp(0,dmg.color[4] or 1,entfac)
+               elseif dmg.entrance == "Entrance_SlideLeft" then
+                    dmg["text"].MoveTo(dmg.position[1]-math.min(0,-50*(0.1^entfac)),dmg.position[2])
+                    dmg["text"].alpha = lerp(0,dmg.color[4] or 1,entfac)
+               elseif dmg.entrance == "Entrance_Unsquish" then
+                    local squishfactor = lerp(0,20,entfac)
+                    if squishfactor == 0 then
+                         dmg["text"].xscale = 8
+                         dmg["text"].yscale = 0
+                         dmg.lerptimer = 0
+                         dmg.hit5 = false
+                         dmg.hit8 = false
+                         dmg.hit10 = false
+                    end
+                    if squishfactor <= 5 then
+                         dmg.lerptimer = dmg.lerptimer + 1
+                         dmg["text"].xscale = lerp(dmg["text"].xscale, 2, (dmg.lerptimer / 10))
+                         dmg["text"].yscale = lerp(dmg["text"].yscale, 2, (dmg.lerptimer / 10))
+                    end
+                    if squishfactor >= 5 and not dmg.hit5 then
+                         dmg.hit5 = true
+                         dmg.lerptimer = 0
+                    end
+                    if squishfactor >= 5 and squishfactor <= 8 then
+                         dmg.lerptimer = dmg.lerptimer + 1
+                         dmg["text"].xscale = lerp(dmg["text"].xscale, 1, (dmg.lerptimer / 6))
+                         dmg["text"].yscale = lerp(dmg["text"].yscale, 4, (dmg.lerptimer / 6))
+                    end
+                    if squishfactor >= 8 and not dmg.hit8 then
+                         dmg.hit8 = true
+                         dmg.lerptimer = 0
+                    end
+                    if squishfactor >= 8 and squishfactor <= 10 then
+                         dmg.lerptimer = dmg.lerptimer + 1
+                         if dmg.lerptimer >= 4 then dmg.lerptimer = 4 end
+                         dmg["text"].xscale = lerp(dmg["text"].xscale, 2, (dmg.lerptimer / 4))
+                         dmg["text"].yscale = lerp(dmg["text"].yscale, 2, (dmg.lerptimer / 4))
+                    end
+                    if squishfactor >= 10 and not dmg.hit10 then
+                         dmg.hit10 = true
+                         dmg["text"].xscale = 2
+                         dmg["text"].yscale = 2
+                    end
+                    if squishfactor <= 10 then
+                         dmg["text"].MoveTo(dmg.position[1]-(dmg["text"].GetTextWidth()/2*dmg["text"].xscale)+dmg["text"].GetTextWidth(),dmg.position[2]-(dmg["text"].GetTextHeight()*dmg["text"].yscale)+dmg["text"].GetTextHeight()*2)
+                    end
+               elseif dmg.entrance == "Entrance_Bounce" then
+                    if not dmg.init then
+                         dmg.init = true
+                         dmg.bounces = 0
+                         dmg.stretch = 0.2
+                         dmg.stretchgo = 1
+                         dmg.hspeed = 5
+                         dmg.vspeed = 2 + math.random()
+                         dmg.vstart = dmg.vspeed
+                         dmg.xoff = -27
+                         dmg.yoff = 0
+                    end
 
-               dmg["text"].MoveTo(dmg["text"].x-w,dmg["text"].y-h)
-          end
+                    if dmg.stretchgo == 1 then
+                         dmg.stretch = dmg.stretch + 0.2
+                    end
+                    if dmg.stretch >= 1.2 then
+                         dmg.stretch = 1
+                         dmg.stretchgo = 0
+                    end
 
-          if dmg["lifetime"] > dmg["age"] then
-               dmg["text"].Remove()
-               dmg = nil
-               table.remove(damagenumbers,i)
+                    if dmg.bounces < 2 then
+                         dmg.vspeed = dmg.vspeed - 0.5
+                         if dmg.yoff < 0 then
+                              dmg.yoff = 0
+                              dmg.vspeed = dmg.vstart/2
+                              dmg.bounces = dmg.bounces + 1
+                              if dmg.bounces == 2 then
+                                   dmg.vspeed = 0
+                                   dmg.xoff = 0
+                              end
+                         end
+                         dmg.xoff = dmg.xoff + dmg.hspeed
+                         dmg.yoff = dmg.yoff + dmg.vspeed
+                         dmg["text"].xscale = 4 - (dmg.stretch*2)
+                         dmg["text"].yscale = dmg.stretch*2
+                         dmg["text"].MoveTo(dmg.position[1]+dmg.xoff-(dmg["text"].GetTextWidth()*dmg["text"].xscale/2)+dmg["text"].GetTextWidth(),dmg.position[2]+dmg.yoff-(dmg["text"].GetTextHeight()*dmg["text"].yscale/2)+dmg["text"].GetTextHeight())
+                    end
+
+
+                    if dmg.hspeed > 0 then dmg.hspeed = dmg.hspeed - 0.5 end
+                    if dmg.hspeed < 0 then dmg.hspeed = dmg.hspeed + 0.5 end
+               end
+
+               if dmg.exit == "Exit_Fade" and dmg["lifetime"]/dmg["age"] >= 1-1/speed then
+                    dmg["text"].alpha = lerp(0,dmg.color[4] or 1,speed-entfac)
+               elseif dmg.exit == "Exit_SlideRight" and dmg["lifetime"]/dmg["age"] >= 1-1/speed then
+                    dmg["text"].MoveTo(dmg.position[1]+50*(0.01^(speed-entfac)),dmg.position[2])
+                    dmg["text"].alpha = lerp(0,dmg.color[4] or 1,speed-entfac)
+               elseif dmg.exit == "Exit_SlideLeft" and dmg["lifetime"]/dmg["age"] >= 1-1/speed then
+                    dmg["text"].MoveTo(dmg.position[1]-50*(0.01^(speed-entfac)),dmg.position[2])
+                    dmg["text"].alpha = lerp(0,dmg.color[4] or 1,speed-entfac)
+               elseif dmg.exit == "Exit_FlyUp" and dmg["lifetime"]/dmg["age"] >= 1-1/speed then
+                    dmg.position[2] = dmg.position[2] + (entfac-4) * 5
+                    dmg["text"].yscale = dmg["text"].yscale + (entfac-4) / 10
+                    dmg["text"].alpha = lerp(0,1,speed-entfac)
+                    dmg["text"].MoveTo(dmg.position[1],dmg.position[2])
+               elseif dmg.exit == "Exit_FlyUpLinear" and dmg["lifetime"]/dmg["age"] >= 1-1/speed then
+                    dmg.position[2] = dmg.position[2] + 2
+                    dmg["text"].alpha = dmg["text"].alpha - 0.04
+                    dmg["text"].yscale = dmg["text"].yscale + 0.04
+                    dmg["text"].MoveTo(dmg.position[1],dmg.position[2])
+               end
+
+               if dmg["lifetime"] > dmg["age"] then
+                    dmg["text"].Remove()
+                    dmg = nil
+                    table.remove(damagenumbers,i)
+               end
+          else
+               dmg.firstframe = false
           end
      end
 end

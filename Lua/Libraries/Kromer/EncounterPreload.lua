@@ -2,7 +2,7 @@
 local cover = CreateSprite("px","BelowBullet")
 cover.Scale(640,480)
 cover.color = {0,0,0}
-cover.color = {0.5,0.75,0.75}
+--cover.color = {0.5,0.75,0.75}
 
 
 -- Encounter Starting --
@@ -68,11 +68,6 @@ function EncounterStarting()
      __enemies = nil
      KROMER_LOG("Enemies Loaded",3)
 
-     enemies[1].commands = {}
-     for i = 1, 10 do
-          enemies[2].commands[i] = {name="Command "..i,description="Description\n"..i,tpcost=0}
-     end
-
      -- Initialize Libraries
      UI.Init()
      TP.Init()
@@ -87,7 +82,7 @@ function EncounterStarting()
      KROMER_LOG("Encounter Starting Ran",3)
 end
 
-
+local particles = {}
 
 -- Update --
 __u = Update or function() end
@@ -95,23 +90,48 @@ function Update()
      Kromer_StateAge = Kromer_StateAge + Time.dt
      FRAME = FRAME + 1
 
-     -- if FRAME % 2 == 0 then
+     --if FRAME % 10 == 0 then
+           --SingleFrame()
      --      SingleFrame()
-     --      SingleFrame()
-     -- end
+     --end
      SingleFrame()
 end
 
 function SingleFrame()
+     --if Input.Menu == 1 then State("STARTBATTLE") end
      -- Leaving
      if Input.GetKey("Escape") == 1 then
           KROMER_LOG("Exit Requested",3)
           if Kromer_DebugLevel > 0 then KROMER_PrintTraceback(false) end
           State("DONE")
      end
-
+     -- Glide to positions
+     if GetCurrentState() == "STARTBATTLE" then
+          if FRAME % 2 == 0 then
+               local finish = true
+               for i = 1, #heroes do
+                    if not heroes[i].sprite["interp_finish"] then
+                         finish = false
+                         local p = CreateSprite(heroes[i].sprite.spritename,"Background")
+                         p.Scale(heroes[i].sprite.xscale,heroes[i].sprite.yscale)
+                         p.MoveToAbs(heroes[i].sprite.absx,heroes[i].sprite.absy)
+                         p.SetPivot(heroes[i].sprite.xpivot,heroes[i].sprite.ypivot)
+                         p.alpha = 0.5
+                         p["type"] = "heroghost"
+                         table.insert(particles,p)
+                    end
+               end
+               for i = 1, #enemies do
+                    if not enemies[i].sprite["interp_finish"] then
+                         finish = false
+                    end
+               end
+               if finish then
+                    State("INTRO")
+               end
+          end
      -- If all entity animations have stopped, proceed to ACTIONSELECT
-     if GetCurrentState() == "INTRO" then
+     elseif GetCurrentState() == "INTRO" then
           local pass = true
           for i = 1, #heroes do
                if not heroes[i].sprite.animcomplete  and heroes[i].sprite.loopmode ~= "LOOP" then
@@ -182,7 +202,7 @@ function SingleFrame()
                     NextHero()
                elseif menucontext == "act" then
                     if heroes[activehero].magicuser and heroes[activehero].canact then
-                         SetHeroAction(activehero,"act",{uimenurefs[pos]},{act="Standard"})
+                         SetHeroAction(activehero,"act",{uimenurefs[pos]},{act={name="Standard"}})
                          State("ACTIONSELECT")
                          NextHero()
                     else
@@ -225,7 +245,7 @@ function SingleFrame()
 
           if Input.Confirm == 1 then
                if uimenurefs[pos[1]+(pos[2]-1)*2].selectable then
-                    SetHeroAction(activehero,"act",menucontext,{act=uimenurefs[pos[1]+(pos[2]-1)*2],tpchange=-uimenurefs[pos[1]+(pos[2]-1)*2].tpcost})
+                    SetHeroAction(activehero,"act",{menucontext},{act=uimenurefs[pos[1]+(pos[2]-1)*2],tpchange=-uimenurefs[pos[1]+(pos[2]-1)*2].tpcost})
                     if uimenurefs[pos[1]+(pos[2]-1)*2].partymembersrequired ~= nil then
                          for i = 1, #uimenurefs[pos[1]+(pos[2]-1)*2].partymembersrequired do
                               for a = 1, #heroes do
@@ -307,20 +327,68 @@ function SingleFrame()
                State("ACTIONSELECT")
                Audio.PlaySound("menumove")
           end
+
+     elseif GetCurrentState() == "DIALOGUE" then
+          if EncounterText == nil then -- No encounter text
+               if #dialogue_actionqueue == 0 then -- All actions completed
+                    State("ENTITYDIALOGUE")
+               else
+                    for i,v in ipairs(dialogue_actionqueue) do
+                         if v.action == "fight" then
+                              if GetCurrentState() ~= "ATTACKING" then State("ATTACKING") end
+                              HandleAttack(heroes[v.heroNum].__ID,v.targets)
+                         elseif v.action == "act" then
+                              heroes[v.heroNum].StopAnimation()
+                              HandleAct(heroes[v.heroNum].__ID,v.targets,v.parameters.act)
+                              v.targets[1]["HandleCustomCommand__WithAutoCheck"](heroes[v.heroNum].__ID,v.parameters.act.name)
+                              table.remove(dialogue_actionqueue,i)
+                              break
+                         elseif v.action == "magic" then
+                              HandleMagic(heroes[v.heroNum].__ID,v.targets,v.parameters.spell)
+                         elseif v.action == "item" then
+                              HandleItem(heroes[v.heroNum].__ID,v.targets,v.parameters.item)
+                         elseif v.action == "mercy" then
+                              HandleSpare(heroes[v.heroNum].__ID,v.targets)
+                         elseif v.action == "defend" then
+                              HandleDefend(heroes[v.heroNum].__ID)
+                              table.remove(dialogue_actionqueue,i)
+                              break
+                         end
+                    end
+               end
+          elseif not EncounterText.text.isactive then
+               EncounterText = nil
+          end
+     elseif GetCurrentState() == "ENTITYDIALOGUE" then
+          if #TextSystem.EntityText == 0 and Kromer_StateAge > 0 then
+               State("WAVE")
+          end
      end
 
      Interp.Update()
 
      for i = 1, #heroes do
-          heroes[i].Update()
+          heroes[i].Update(i)
      end
      for i = 1, #enemies do
-          enemies[i].Update()
+          enemies[i].Update(i)
+     end
+
+     for i,p in ipairs(particles) do
+          if p["type"] == "heroghost" then
+               p.alpha = p.alpha - 0.02
+               if p.alpha <= 0 then
+                    p.Remove()
+                    table.remove(particles,i)
+               end
+          end
      end
 
      TextSystem.Update()
      UI.Update()
      TP.Update()
+     Arena.Update()
+     Player.Update()
 
      __u()
 end
@@ -334,7 +402,7 @@ function SetHeroAction(heroNum,newaction,newtarget,newparam)
      if newparam.tpchange ~= nil then AddTP(newparam.tpchange) end
      newparam.tpchange = TP.tp - oldtp -- Prevent Spamton from taking our TP
 
-     hero_actions[heroNum] = {action=newaction,targets=newtarget,parameters=newparam}
+     hero_actions[heroNum] = {action=newaction,targets=newtarget,parameters=newparam,heroNum=heroNum}
      past_actions[heroNum] = currentaction
      local anim = heroes[heroNum].currentanimation
      for k,v in pairs(heroes[heroNum].animations) do

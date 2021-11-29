@@ -15,6 +15,7 @@ FRAME = 0
 GetFrame = function() return FRAME end
 
 Kromer_StartTime = Time.time
+Kromer_StateAge = 0
 Kromer_Version = "1.0.0"
 Kromer_DebugLevel = Kromer_DebugLevel or 0
 -- How much [debug] do you want in your kromer?
@@ -37,6 +38,7 @@ CreateLayer("HighestUI", "Bullet")
 -- States --
 Kromer_State = "NONE"
 Kromer_States = {
+     "STARTBATTLE",
      "INTRO",
      "ACTIONSELECT",
      "ENEMYSELECT",
@@ -47,6 +49,7 @@ Kromer_States = {
      "ITEMMENU",
      "ATTACKING",
      "DIALOGUE",
+     "ENTITYDIALOGUE",
      "WAVE",
      "GAMEOVER",
      "OUTRO",
@@ -61,12 +64,14 @@ function GetCurrentState()
 end
 
 -- The actual Encounter Text Object
-local EncounterText = nil
+EncounterText = nil
 
 -- DO NOT CONFUSE THIS FOR EnteringState!!
 function Kromer_EnteringState(newstate, oldstate)
      Kromer_StateAge = 0
-     if oldstate == "ACTIONSELECT" then
+     if oldstate == "INTRO" and UI.baseui.y < 240 then
+          Interp.MoveObjTo(UI.baseui,320,240,20,"easeout",false)
+     elseif oldstate == "ACTIONSELECT" then
           EncounterText.SkipLine()
      elseif oldstate == "ENTITYSELECT" or oldstate == "HEROSELECT" or oldstate == "ENEMYSELECT" then
           UI_Text.CleanUpChildren()
@@ -81,8 +86,19 @@ function Kromer_EnteringState(newstate, oldstate)
           UI.MagicMenuCover.yscale = 0
           uimenurefs = {}
      end
-
-     if newstate == "INTRO" then
+     if newstate == "STARTBATTLE" then
+          UI.baseui.y = 0
+          -- Glide entities
+          for i = 1, #heroes do
+               heroes[i].SetAnimation("StartBattle")
+               Interp.MoveObjTo(heroes[i].sprite,heropositions[i][1],heropositions[i][2],30,"linear",false)
+          end
+          for i = 1, #enemies do
+               enemies[i].SetAnimation("StartBattle")
+               Interp.MoveObjTo(enemies[i].sprite,enemypositions[i][1],enemypositions[i][2],30,"linear",false)
+          end
+     elseif newstate == "INTRO" then
+          UI.baseui.y = 0
           Audio.PlaySound(introsound or "weaponpull")
           -- Play all heroes' intro animations
           -- Actually, play enemy animations too
@@ -102,6 +118,7 @@ function Kromer_EnteringState(newstate, oldstate)
                end
                Audio.Unpause()
           end
+          dialogue_actionqueue = {}
           -- Encounter Text
           if EncounterText == nil and encountertext ~= nil then
                EncounterText = TextSystem.CreateText(encountertext,"BattleEncounterText",31,76)
@@ -122,19 +139,67 @@ function Kromer_EnteringState(newstate, oldstate)
           UI_Soul.SetParent(UI.MagicMenuCover)
           UI.MagicMenuCover.yscale = 115
      elseif newstate == "DIALOGUE" then
+          --activehero = 0
           EncounterText.Remove()
+          EncounterText = nil
           TextSystem.CharacterPortrait.Set("empty")
 
           if oldstate == "ACTIONSELECT" then
-               local t = {}
+               -- Act/Mercy
+               -- Item
+               -- Fight
                for i = 1, #heroes do
-                    t[i] = heroes[i].name .. " done did "..hero_actions[i].action .. "!"
+                    if hero_actions[i].action == "act" or hero_actions[i].action == "mercy" then
+                         dialogue_actionqueue[#dialogue_actionqueue+1] = hero_actions[i]
+                    end
                end
-               EncounterText = TextSystem.CreateText(t,"BattleEncounterText",31,76)
-               EncounterText["progressmode"] = "manual"
+               for i = 1, #heroes do
+                    if hero_actions[i].action == "item" or hero_actions[i].action == "defend" then
+                         dialogue_actionqueue[#dialogue_actionqueue+1] = hero_actions[i]
+                    end
+               end
+               for i = 1, #heroes do
+                    if hero_actions[i].action == "fight" then
+                         dialogue_actionqueue[#dialogue_actionqueue+1] = hero_actions[i]
+                    end
+               end
           end
-
+     elseif newstate == "ENTITYDIALOGUE" then
+          for i = 1, #heroes do
+               local currentdialogue = heroes[i].currentdialogue
+               if currentdialogue ~= nil and #currentdialogue > 0 then
+                    local xpos = heroes[i].sprite.absx+heroes[i].sprite.width*heroes[i].sprite.xscale/2
+                    heroes[i].Kromer_CurrentText = TextSystem.CreateText(currentdialogue,"BattleHeroText",xpos,heroes[i].sprite.absy)
+               end
+          end
+          for i = 1, #enemies do
+               local currentdialogue = ""
+               if enemies[i].currentdialogue ~= nil then
+                    currentdialogue = enemies[i].currentdialogue
+               elseif enemies[i].randomdialogue ~= nil then
+                    currentdialogue = enemies[i].randomdialogue[math.random(1,#enemies[i].randomdialogue)]
+               end
+               if currentdialogue ~= nil and #currentdialogue > 0 then
+                    local xpos = enemies[i].sprite.absx-enemies[i].sprite.width*enemies[i].sprite.xscale/2
+                    enemies[i].Kromer_CurrentText = TextSystem.CreateText(currentdialogue,"BattleEnemyText",xpos,enemies[i].sprite.absy)
+               end
+          end
      end
+end
+
+-- Functions for All (Most) --
+function BattleDialogue(text)
+     if GetCurrentState() ~= "DIALOGUE" then State("DIALOGUE") end
+     if type(text) == "string" then text = {text} end
+     EncounterText = TextSystem.CreateText(text,"BattleEncounterText",31,76)
+     EncounterText.progressmode = "manual"
+end
+function BattleDialog(text) BattleDialogue(text) end
+function ParallelDialogue(text)
+     if GetCurrentState() ~= "ENTITYDIALOGUE" then State("ENTITYDIALOGUE") end
+     if type(text) == "string" then text = {text} end
+     EncounterText = TextSystem.CreateText(text,"BattleEncounterText",31,76)
+     EncounterText.progressmode = "manual"
 end
 
 -- Encounter Functions --
@@ -151,13 +216,16 @@ linked_actions = {}      -- Has a hero's action "linked" to another's? If so, wh
 menucontext    = ""      -- Context for a menu, if required
 UI_Positions   = {}      -- Deltarune remembers each hero's position in menus.
 
+all_linked_status_actions = {}
+dialogue_actionqueue = {}
+
 -- Remove obsolete things --
 BeforeDeath = nil
 SetFrameBasedMovement = nil
 SetAction = nil
 AllowPlayerDef = nil
-BattleDialogue = nil
-BattleDialog = nil
+--BattleDialogue = nil
+--BattleDialog = nil
 SetButtonLayer = nil
 Inventory = nil
 Player = nil
@@ -232,27 +300,38 @@ end
 
 -- Statuses --
 Kromer_DefinedStatuses = {}
-function DefineStatus(name,color,linked_action)
+function DefineStatus(name,color,linked_action,displaypriority)
      if name == nil then error("Status has no name.",2) end
      if color == nil then
           KROMER_LOG("Status \""..name.."\" Has no Color!",1)
           color = {1,1,1}
      end
-     if linked_action == nil then KROMER_LOG("Status \""..name.."\" Has no Linked Action!",2) end
-     Kromer_DefinedStatuses[name] = {name=name,color=color,linked_action=linked_action}
+     if linked_action == nil then
+          KROMER_LOG("Status \""..name.."\" Has no Linked Action!",2)
+          linked_action = {}
+     end
+     if displaypriority == nil then
+          KROMER_LOG("Status \""..name.."\" defaulted to not displaying text!",2)
+          displaypriority = 0
+     end
+     if type(linked_action) ~= "table" then linked_action = {linked_action} end
+     Kromer_DefinedStatuses[name] = {name=name,color=color,linked_action=linked_action, displaypriority=displaypriority}
 end
 
-DefineStatus("spareable",{1,1,0},"mercy")
-DefineStatus("tired",{0,180/255,1},{"Pacify","Sleep Mist"})
-DefineStatus("asleep",{0.5,0.5,0.5})
+DefineStatus("Spareable",{1,1,0},{"mercy"})
+DefineStatus("Tired",{0,180/255,1},{"Pacify","Sleep Mist"},1)
+DefineStatus("Asleep",{0.5,0.5,0.5},nil,2)
 
 require "Kromer/KrisGoPlayInTheSandboxWithYourBrother"
+require "internetlibs"
 TextSystem   = require "TextSystem"
 UI           = require "Kromer/UI"
 Interp       = require "interpolation"
 XmlParser    = require "XmlParser"
 TP           = require "Kromer/TP"
 ItemManager  = require "ItemManager"
+Arena        = require "Kromer/Arena"
+Player       = require "Kromer/PlayerSoul"
 
 -- Utility Code from CYK --
 
@@ -342,6 +421,12 @@ end
 
 function map(a1,a2,b1,b2,s)
     return b1+(s-a1)*(b2-b1)/(a2-a1)
+end
+
+function sign(n)
+     if n < 0 then return -1 end
+     if n > 0 then return 1 end
+     return 0
 end
 
 KROMER_LOG("Kromer Initialized",3)
